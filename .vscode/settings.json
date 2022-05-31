@@ -1,0 +1,21 @@
+{
+    "python.linting.pylintArgs": [
+        "--load-plugins",
+        "pylint_flask_sqlalchemy",
+        "pylint_flask",
+    ],
+    "cSpell.words": [
+        "applymap",
+        "backref",
+        "barh",
+        "figsize",
+        "fpgrowth",
+        "histtype",
+        "matplotlib",
+        "rwidth",
+        "sqlalchemy",
+        "xlabel",
+        "xticklabels",
+        "ylabel"
+    ]
+}

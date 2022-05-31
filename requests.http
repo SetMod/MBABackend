@@ -1,0 +1,367 @@
+@protocol=http
+@host=localhost
+@port=8000
+
+
+
+
+//======================================Roles api======================================
+###
+GET {{protocol}}://{{host}}:{{port}}/api/roles/ HTTP/1.1
+
+###
+GET {{protocol}}://{{host}}:{{port}}/api/roles/1 HTTP/1.1
+
+###
+POST {{protocol}}://{{host}}:{{port}}/api/roles/ HTTP/1.1
+content-type: application/json
+
+{
+    "role_name": "Admin",
+    "role_description": "Role for admin user"
+}
+
+###
+GET {{protocol}}://{{host}}:{{port}}/api/roles/1 HTTP/1.1
+###
+PUT {{protocol}}://{{host}}:{{port}}/api/roles/1 HTTP/1.1
+content-type: application/json
+
+{
+    "role_name": "User",
+    "role_description": "Role for standart user"
+}
+
+###
+DELETE {{protocol}}://{{host}}:{{port}}/api/roles/3 HTTP/1.1
+
+
+
+
+
+//======================================organizationRoles api======================================
+###
+GET {{protocol}}://{{host}}:{{port}}/api/organization_roles/ HTTP/1.1
+
+###
+GET {{protocol}}://{{host}}:{{port}}/api/organization_roles/1 HTTP/1.1
+
+###
+POST {{protocol}}://{{host}}:{{port}}/api/organization_roles/ HTTP/1.1
+content-type: application/json
+
+{
+    "organization_role_name": "User",
+    "organization_role_description": "Role for standart user"
+}
+###
+GET {{protocol}}://{{host}}:{{port}}/api/organization_roles/ HTTP/1.1
+###
+PUT {{protocol}}://{{host}}:{{port}}/api/organization_roles/3 HTTP/1.1
+content-type: application/json
+
+{
+    "organization_role_name": "Admins",
+    "organization_role_description": "Role for standart admin"
+}
+
+###
+DELETE {{protocol}}://{{host}}:{{port}}/api/organization_roles/3 HTTP/1.1
+
+
+
+
+
+//======================================Users api======================================
+###
+GET {{protocol}}://{{host}}:{{port}}/api/users/ HTTP/1.1
+
+###
+GET {{protocol}}://{{host}}:{{port}}/api/users/1/organizations HTTP/1.1
+
+###
+GET {{protocol}}://{{host}}:{{port}}/api/users/1/files HTTP/1.1
+
+###
+GET {{protocol}}://{{host}}:{{port}}/api/users/1/reports HTTP/1.1
+
+###
+GET {{protocol}}://{{host}}:{{port}}/api/users/1 HTTP/1.1
+
+###
+GET {{protocol}}://{{host}}:{{port}}/api/users/?role_name=User HTTP/1.1
+
+###
+POST {{protocol}}://{{host}}:{{port}}/api/users/login HTTP/1.1
+content-type: application/json
+
+  {
+    "user_username": "sam",
+    "user_password": "sam123"
+  }
+
+###
+POST {{protocol}}://{{host}}:{{port}}/api/users/ HTTP/1.1
+content-type: application/json
+
+  {
+    "user_first_name": "Sam",
+    "user_second_name": "Lun",
+    "user_email": "sam@mail.com",
+    "user_phone": "+380188112891",
+    "user_username": "sam",
+    "user_password": "sam123",
+    "role_id": 1
+  }
+###
+GET {{protocol}}://{{host}}:{{port}}/api/users/ HTTP/1.1
+###
+PUT {{protocol}}://{{host}}:{{port}}/api/users/1 HTTP/1.1
+content-type: application/json
+
+  {
+    "user_first_name": "Sam",
+    "user_second_name": "Fisher",
+    "user_email": "sam@mail.com",
+    "user_phone": "+380132123121",
+    "user_username": "sam1",
+    "user_password": "sam1234",
+    "role_id": 1
+  }
+
+###
+POST  {{protocol}}://{{host}}:{{port}}/api/users/organizations HTTP/1.1
+content-type: application/json
+
+  {
+    "user_id": 1,
+    "organization_id": 2,
+    "organization_role_id": 1
+  }
+###
+DELETE {{protocol}}://{{host}}:{{port}}/api/users/1 HTTP/1.1
+###
+DELETE {{protocol}}://{{host}}:{{port}}/api/users/1/organizations/1 HTTP/1.1
+
+
+
+
+
+//======================================Organizations api======================================
+###
+GET {{protocol}}://{{host}}:{{port}}/api/organizations/ HTTP/1.1
+
+###
+GET {{protocol}}://{{host}}:{{port}}/api/organizations/1 HTTP/1.1
+
+###
+GET {{protocol}}://{{host}}:{{port}}/api/organizations/1/users HTTP/1.1
+
+###
+GET {{protocol}}://{{host}}:{{port}}/api/organizations/1/files HTTP/1.1
+
+###
+GET {{protocol}}://{{host}}:{{port}}/api/organizations/1/reports HTTP/1.1
+
+###
+POST {{protocol}}://{{host}}:{{port}}/api/organizations/ HTTP/1.1
+content-type: application/json
+
+  {
+    "organization_name": "Ozzy",
+    "organization_description": "Fastfood",
+    "organization_email": "ozzy@gmail.com",
+    "organization_phone": "+38012311377"
+  }
+  # {
+  #   "organization_name": "Macdonalds",
+  #   "organization_description": "Fastfood",
+  #   "organization_email": "mac@gmail.com",
+  #   "organization_phone": "+38012311321"
+  # }
+
+###
+GET {{protocol}}://{{host}}:{{port}}/api/organizations/ HTTP/1.1
+###
+PUT {{protocol}}://{{host}}:{{port}}/api/organizations/2 HTTP/1.1
+content-type: application/json
+
+  {
+    "organization_name": "Macdonalds2",
+    "organization_description": "The Fastfood restouran",
+    "organization_email": "mac2@gmail.com",
+    "organization_phone": "+38011231321"
+  }
+
+###
+DELETE {{protocol}}://{{host}}:{{port}}/api/organizations/2 HTTP/1.1
+
+
+//======================================Users organizations api======================================
+###
+GET {{protocol}}://{{host}}:{{port}}/api/users_organizations/ HTTP/1.1
+###
+GET {{protocol}}://{{host}}:{{port}}/api/users_organizations/?user_id=1&organization_id=1 HTTP/1.1
+###
+GET {{protocol}}://{{host}}:{{port}}/api/users_organizations/role?user_id=1&organization_id=1 HTTP/1.1
+
+
+//======================================Fiels api======================================
+###
+GET {{protocol}}://{{host}}:{{port}}/api/files/ HTTP/1.1
+
+###
+GET {{protocol}}://{{host}}:{{port}}/api/files/1 HTTP/1.1
+###
+GET {{protocol}}://{{host}}:{{port}}/api/files/download/3 HTTP/1.1
+
+# ###
+# POST {{protocol}}://{{host}}:{{port}}/api/files/upload/ HTTP/1.1
+# content-type: application/json
+
+#   {
+#     "file_name": "TheName",
+#     "file_path": "Bonder3",
+#     "user_id": 2,
+#     "organization_id": 1
+#   }
+###
+POST {{protocol}}://{{host}}:{{port}}/api/files/upload?file_name=MyFile&user_id=1&organization_id=1 HTTP/1.1
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="file"
+
+file
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="file.csv"
+
+< ./file.csv
+--WebAppBoundary--
+
+###
+PUT {{protocol}}://{{host}}:{{port}}/api/files/2 HTTP/1.1
+content-type: application/json
+
+  {
+    "file_id": 2,
+    "file_name": "TheName22",
+    "file_path": "Bonder2",
+    "user_id": 1,
+    "organization_id": 1
+  }
+
+###
+DELETE {{protocol}}://{{host}}:{{port}}/api/files/1 HTTP/1.1
+
+
+
+
+
+//======================================Reports api======================================
+###
+GET {{protocol}}://{{host}}:{{port}}/api/reports/ HTTP/1.1
+
+###
+GET {{protocol}}://{{host}}:{{port}}/api/reports/1 HTTP/1.1
+
+###
+GET {{protocol}}://{{host}}:{{port}}/api/reports/1/analyzes HTTP/1.1
+
+###
+GET {{protocol}}://{{host}}:{{port}}/api/reports/1/visualizations HTTP/1.1
+
+###
+POST {{protocol}}://{{host}}:{{port}}/api/reports/ HTTP/1.1
+content-type: application/json
+
+  {
+    "report_name": "TheFirstReport3",
+    "report_data": "the moste important report ever",
+    "user_id": 2,
+    "organization_id": 1
+  }
+
+###
+PUT {{protocol}}://{{host}}:{{port}}/api/reports/1 HTTP/1.1
+content-type: application/json
+
+  {
+    "report_name": "TheFirstReport",
+    "report_data": "The moste important report ever",
+    "user_id": 1,
+    "organization_id": 1
+  }
+
+###
+DELETE {{protocol}}://{{host}}:{{port}}/api/reports/3 HTTP/1.1
+
+
+
+
+
+//======================================Analyzes api======================================
+###
+GET {{protocol}}://{{host}}:{{port}}/api/analyzes/ HTTP/1.1
+
+###
+GET {{protocol}}://{{host}}:{{port}}/api/analyzes/1 HTTP/1.1
+
+###
+POST {{protocol}}://{{host}}:{{port}}/api/analyzes/ HTTP/1.1
+content-type: application/json
+
+  {
+    "analyze_name": "TheFirstReport3",
+    "analyze_description": "the moste important report ever",
+    "analyze_file_path": "some path",
+    "report_id": 3
+  }
+
+###
+PUT {{protocol}}://{{host}}:{{port}}/api/analyzes/1 HTTP/1.1
+content-type: application/json
+
+  {
+    "analyze_name": "First analyze",
+    "analyze_description": "the moste important analyze ever",
+    "analyze_file_path": "some path",
+    "report_id": 1
+  }
+
+###
+DELETE {{protocol}}://{{host}}:{{port}}/api/analyzes/3 HTTP/1.1
+
+
+
+
+
+//======================================Visualizations api======================================
+###
+GET {{protocol}}://{{host}}:{{port}}/api/visualizations/ HTTP/1.1
+
+###
+GET {{protocol}}://{{host}}:{{port}}/api/visualizations/1 HTTP/1.1
+
+###
+POST {{protocol}}://{{host}}:{{port}}/api/visualizations/ HTTP/1.1
+content-type: application/json
+
+  {
+    "visualization_name": "first visualization",
+    "visualization_image_path": "the most important visualization ever",
+    "report_id": 3
+  }
+
+###
+PUT {{protocol}}://{{host}}:{{port}}/api/visualizations/1 HTTP/1.1
+content-type: application/json
+
+  {
+    "visualization_name": "First visualization",
+    "visualization_image_path": "The most important visualization ever",
+    "report_id": 1
+  }
+
+###
+DELETE {{protocol}}://{{host}}:{{port}}/api/visualizations/2 HTTP/1.1
