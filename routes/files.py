@@ -35,9 +35,9 @@ def download_file_by_id(file_id: int):
 
     if file is None:
         return 'File not found', 404
-    else:
-        name = os.path.basename(file['file_path'])
-        return send_from_directory(UPLOAD_FOLDER, name, as_attachment=True)
+
+    name = os.path.basename(file['file_path'])
+    return send_from_directory(UPLOAD_FOLDER, name, as_attachment=True)
 
 
 def allowed_file(filename):
