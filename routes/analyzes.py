@@ -1,4 +1,3 @@
-from re import L
 from flask import Blueprint, jsonify, request
 from models.AnalyzesModel import Analyzes
 from services.AnalyzesService import AnalyzesService

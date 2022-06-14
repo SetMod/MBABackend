@@ -96,35 +96,34 @@ def analyze(file_path):
     df_set.head()
 
     def encode(x):
-        if x <= 0:
-            return 0
-        else:
-            return 1
+        return 0 if x <= 0 else 1
 
     df_set = df_set.applymap(encode)
-    df_set
 
     frequent_itemsets = fpgrowth(df_set, min_support=0.015, use_colnames=True)
+    # frequent_itemsets = apriori(df_set, min_support=0.015, use_colnames=True)
 
-    frequent_itemsets = fpgrowth(df_set, min_support=0.015, use_colnames=True)
-    top_items = frequent_itemsets.sort_values('support', ascending=False)[:20]
-    for i in range(len(top_items.itemsets)):
-        top_items.itemsets.iloc[i] = str(list(top_items.itemsets.iloc[i]))
-    fig = plt.figure(figsize=(10, 10))
-    ax = fig.add_subplot(111)
-    ax.bar(top_items.itemsets, top_items.support)
-    for label in ax.xaxis.get_ticklabels():
-        label.set_rotation(90)
-    plt.xlabel('Item')
-    plt.ylabel('Support')
+    if analyze['top_frequent_items']['analyze'] is True:
+        top_items = frequent_itemsets.sort_values(
+            'support', ascending=False)[:20]
+        for i in range(len(top_items.itemsets)):
+            top_items.itemsets.iloc[i] = str(list(top_items.itemsets.iloc[i]))
+        if analyze['top_frequent_items']['plot'] is True:
+            fig = plt.figure(figsize=(10, 10))
+            ax = fig.add_subplot(111)
+            ax.bar(top_items.itemsets, top_items.support)
+            for label in ax.xaxis.get_ticklabels():
+                label.set_rotation(90)
+            plt.xlabel('Item')
+            plt.ylabel('Support')
 
-    # apply the association rules to these item-sets formed by Apriori algorithm
-
+    # apply the association rules to these item-sets formed by FPGrowth algorithm
     rules = association_rules(
         frequent_itemsets, metric='confidence', min_threshold=0.2)
 
-    top_rules = rules.sort_values('confidence', ascending=False)[:10]
-
-    fig = plt.figure(figsize=(10, 10))
-    ax = fig.add_subplot(111)
-    ax.scatter(top_rules.support, top_rules.confidence, top_rules.lift)
+    if analyze['top_association_rules']['analyze'] is True:
+        top_rules = rules.sort_values('confidence', ascending=False)[:10]
+        if analyze['association_rules']['plot'] is True:
+            fig = plt.figure(figsize=(10, 10))
+            ax = fig.add_subplot(111)
+            ax.scatter(top_rules.support, top_rules.confidence, top_rules.lift)
