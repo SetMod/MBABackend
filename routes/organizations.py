@@ -1,9 +1,12 @@
 from flask import Blueprint, jsonify, request
 from models.OrganizationsModel import Organizations
+from models.UsersOrganizationsModel import UsersOrganizations
 from services.OrganizationsService import OrganizationsService
+from services.UsersOrganizationsService import UsersOrganizationsService
 
 organizations_api = Blueprint('organizations', __name__)
 organizations_service = OrganizationsService()
+users_organizations_service = UsersOrganizationsService()
 
 
 @organizations_api.get('/')
@@ -60,6 +63,23 @@ def get_organization_reports(organization_id: int):
         return jsonify(organization_reports), 200
 
 
+@organizations_api.post('/users')
+def add_user_to_organization():
+    user_organization = users_organizations_service.map_users_organizations(
+        request.json)
+
+    if not isinstance(user_organization, UsersOrganizations):
+        return jsonify(user_organization), 400
+
+    added_user_organization = organizations_service.add_user_to_organization(
+        user_organization)
+    print(added_user_organization)
+    if added_user_organization is None:
+        return 'Failed to add user to organization', 400
+    else:
+        return jsonify(added_user_organization), 201
+
+
 @organizations_api.post('/')
 def create_organization():
     organization = organizations_service.map_organization(request.json)
@@ -88,6 +108,17 @@ def update_organization(organization_id: int):
         return "Failed to update an organization", 400
     else:
         return jsonify(updated_organization), 201
+
+
+@organizations_api.delete('/<int:organization_id>/user/<int:user_id>')
+def remove_user_from_organization(user_id: int, organization_id: int):
+    user_organizations = organizations_service.delete_user_from_organization(
+        user_id, organization_id)
+
+    if user_organizations is None:
+        return 'Failed to remove user from organization', 400
+    else:
+        return jsonify(user_organizations), 200
 
 
 @organizations_api.delete('/<int:organization_id>')

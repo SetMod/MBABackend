@@ -3,10 +3,7 @@ from models.FilesModel import FilesSchema
 from models.OrganizationsModel import OrganizationsSchema
 from models.ReportsModel import ReportsSchema
 from models.UsersModel import Users, UsersSchema
-from models.UsersOrganizationsModel import UsersOrganizations
-from services.OrganizationRolesService import OrganizationRolesService
 from services.RolesService import RolesService
-from services.OrganizationsService import OrganizationsService
 from services.UsersOrganizationsService import UsersOrganizationsService
 from app import db
 
@@ -16,8 +13,6 @@ class UsersService():
     def __init__(self) -> None:
         self.roles_service = RolesService()
         self.reports_schema = ReportsSchema()
-        self.organization_roles_service = OrganizationRolesService()
-        self.organizations_service = OrganizationsService()
         self.organizations_schema = OrganizationsSchema()
         self.users_organizations_service = UsersOrganizationsService()
         self.users_schema = UsersSchema()
@@ -85,47 +80,6 @@ class UsersService():
             db.session.add(user)
             db.session.commit()
             return self.users_schema.dump(user) if dump else user
-        except Exception:
-            return None
-
-    def add_user_to_organization(self, user_organization: UsersOrganizations, dump: bool = True):
-        user = self.get_user_by_id(user_organization.user_id, dump=False)
-        organization = self.organizations_service.get_organization_by_id(
-            user_organization.organization_id, dump=False)
-        organization_role = self.organization_roles_service.get_organization_role_by_id(
-            user_organization.organization_role_id, dump=False)
-
-        if user is None or organization is None or organization_role is None:
-            return None
-
-        try:
-            # user.user_organizations.append(organization)
-            db.session.add(user_organization)
-            db.session.commit()
-            # added_user_organization = self.users_organizations_service.get_user_organization(
-            #     user_organization.user_id, user_organization.organization_id)
-            # print(added_user_organization)
-
-            # added_user_organization.organization_role_id = user_organization.organization_role_id
-            # db.session.commit()
-            return self.organizations_schema.dump(user.user_organizations, many=True) if dump else user.user_organizations
-            # return self.users_schema.dump(user) if dump else user
-        except Exception:
-            return None
-
-    def remove_user_from_organization(self,  user_id: int, organization_id: int, dump: bool = True):
-        user = self.get_user_by_id(user_id, dump=False)
-        organization = self.organizations_service.get_organization_by_id(
-            organization_id, dump=False)
-
-        if user is None or organization is None:
-            return None
-
-        try:
-            user.user_organizations.remove(organization)
-            db.session.commit()
-            return self.organizations_schema.dump(user.user_organizations, many=True) if dump else user.user_organizations
-            # return self.users_schema.dump(user) if dump else user
         except Exception:
             return None
 

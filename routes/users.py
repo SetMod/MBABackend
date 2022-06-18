@@ -6,7 +6,7 @@ from services.UsersService import UsersService
 
 users_api = Blueprint('users', __name__)
 users_service = UsersService()
-users_organizations_service = UsersOrganizationsService()
+# users_organizations_service = UsersOrganizationsService()
 
 
 @users_api.get('/')
@@ -118,23 +118,6 @@ def update_user(user_id: int):
         return jsonify(updated_user), 200
 
 
-@users_api.post('/organizations')
-def add_user_to_organization():
-    user_organization = users_organizations_service.map_users_organizations(
-        request.json)
-
-    if not isinstance(user_organization, UsersOrganizations):
-        return jsonify(user_organization), 400
-
-    added_user_organization = users_service.add_user_to_organization(
-        user_organization)
-
-    if added_user_organization is None:
-        return 'Failed to add user to organization', 400
-    else:
-        return jsonify(added_user_organization), 201
-
-
 @users_api.delete('/<int:user_id>')
 def delete_user(user_id: int):
     deleted_user = users_service.delete_user(user_id)
@@ -143,14 +126,3 @@ def delete_user(user_id: int):
         return "Failed to delete a user", 400
     else:
         return jsonify(deleted_user), 200
-
-
-@users_api.delete('/<int:user_id>/organizations/<int:organization_id>')
-def remove_user_from_organization(user_id: int, organization_id: int):
-    user_organizations = users_service.remove_user_from_organization(
-        user_id, organization_id)
-
-    if user_organizations is None:
-        return 'Failed to remove user from organization', 400
-    else:
-        return jsonify(user_organizations), 200
