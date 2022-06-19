@@ -10,30 +10,30 @@
 GET {{protocol}}://{{host}}:{{port}}/api/roles/ HTTP/1.1
 
 ###
-GET {{protocol}}://{{host}}:{{port}}/api/roles/1 HTTP/1.1
+GET {{protocol}}://{{host}}:{{port}}/api/roles/3 HTTP/1.1
 
 ###
 POST {{protocol}}://{{host}}:{{port}}/api/roles/ HTTP/1.1
 content-type: application/json
 
 {
-    "role_name": "Admin",
+    "role_name": "Admin2",
     "role_description": "Role for admin user"
 }
 
 ###
-GET {{protocol}}://{{host}}:{{port}}/api/roles/1 HTTP/1.1
+GET {{protocol}}://{{host}}:{{port}}/api/roles/4 HTTP/1.1
 ###
-PUT {{protocol}}://{{host}}:{{port}}/api/roles/1 HTTP/1.1
+PUT {{protocol}}://{{host}}:{{port}}/api/roles/4 HTTP/1.1
 content-type: application/json
 
 {
-    "role_name": "User",
+    "role_name": "User2",
     "role_description": "Role for standart user"
 }
 
 ###
-DELETE {{protocol}}://{{host}}:{{port}}/api/roles/3 HTTP/1.1
+DELETE {{protocol}}://{{host}}:{{port}}/api/roles/4 HTTP/1.1
 
 
 
@@ -75,29 +75,23 @@ DELETE {{protocol}}://{{host}}:{{port}}/api/organization_roles/3 HTTP/1.1
 //======================================Users api======================================
 ###
 GET {{protocol}}://{{host}}:{{port}}/api/users/ HTTP/1.1
-
-###
-GET {{protocol}}://{{host}}:{{port}}/api/users/1/organizations HTTP/1.1
-
-###
-GET {{protocol}}://{{host}}:{{port}}/api/users/1/files HTTP/1.1
-
-###
-GET {{protocol}}://{{host}}:{{port}}/api/users/1/reports HTTP/1.1
-
-###
-GET {{protocol}}://{{host}}:{{port}}/api/users/1 HTTP/1.1
-
 ###
 GET {{protocol}}://{{host}}:{{port}}/api/users/?role_name=User HTTP/1.1
-
+###
+GET {{protocol}}://{{host}}:{{port}}/api/users/2 HTTP/1.1
+###
+GET {{protocol}}://{{host}}:{{port}}/api/users/2/organizations HTTP/1.1
+###
+GET {{protocol}}://{{host}}:{{port}}/api/users/2/files HTTP/1.1
+###
+GET {{protocol}}://{{host}}:{{port}}/api/users/2/reports HTTP/1.1
 ###
 POST {{protocol}}://{{host}}:{{port}}/api/users/login HTTP/1.1
 content-type: application/json
 
   {
-    "user_username": "sam",
-    "user_password": "sam123"
+    "user_username": "don",
+    "user_password": "don123"
   }
 
 ###
@@ -107,42 +101,32 @@ content-type: application/json
   {
     "user_first_name": "Sam",
     "user_second_name": "Lun",
-    "user_email": "sam@mail.com",
-    "user_phone": "+380188112891",
-    "user_username": "sam",
+    "user_email": "sam2@mail.com",
+    "user_phone": "+38018811289",
+    "user_username": "sam2",
     "user_password": "sam123",
     "role_id": 1
   }
 ###
 GET {{protocol}}://{{host}}:{{port}}/api/users/ HTTP/1.1
 ###
-PUT {{protocol}}://{{host}}:{{port}}/api/users/1 HTTP/1.1
+PUT {{protocol}}://{{host}}:{{port}}/api/users/8 HTTP/1.1
 content-type: application/json
 
   {
     "user_first_name": "Sam",
     "user_second_name": "Fisher",
-    "user_email": "sam@mail.com",
-    "user_phone": "+380132123121",
-    "user_username": "sam1",
+    "user_email": "sam2@mail.com",
+    "user_phone": "+380132123126",
+    "user_username": "sam2",
     "user_password": "sam1234",
     "role_id": 1
   }
 
 ###
-POST  {{protocol}}://{{host}}:{{port}}/api/users/organizations HTTP/1.1
-content-type: application/json
-
-  {
-    "user_id": 1,
-    "organization_id": 2,
-    "organization_role_id": 1
-  }
+DELETE {{protocol}}://{{host}}:{{port}}/api/users/8 HTTP/1.1
 ###
-DELETE {{protocol}}://{{host}}:{{port}}/api/users/1 HTTP/1.1
-###
-DELETE {{protocol}}://{{host}}:{{port}}/api/users/1/organizations/1 HTTP/1.1
-
+GET {{protocol}}://{{host}}:{{port}}/api/users/2/organizations HTTP/1.1
 
 
 
@@ -150,28 +134,28 @@ DELETE {{protocol}}://{{host}}:{{port}}/api/users/1/organizations/1 HTTP/1.1
 //======================================Organizations api======================================
 ###
 GET {{protocol}}://{{host}}:{{port}}/api/organizations/ HTTP/1.1
-
 ###
 GET {{protocol}}://{{host}}:{{port}}/api/organizations/1 HTTP/1.1
+###
+GET {{protocol}}://{{host}}:{{port}}/api/organizations/3/users HTTP/1.1
+###
+GET {{protocol}}://{{host}}:{{port}}/api/organizations/user/2 HTTP/1.1
 
 ###
-GET {{protocol}}://{{host}}:{{port}}/api/organizations/1/users HTTP/1.1
+GET {{protocol}}://{{host}}:{{port}}/api/organizations/2/files HTTP/1.1
 
 ###
-GET {{protocol}}://{{host}}:{{port}}/api/organizations/1/files HTTP/1.1
-
-###
-GET {{protocol}}://{{host}}:{{port}}/api/organizations/1/reports HTTP/1.1
+GET {{protocol}}://{{host}}:{{port}}/api/organizations/2/reports HTTP/1.1
 
 ###
 POST {{protocol}}://{{host}}:{{port}}/api/organizations/ HTTP/1.1
 content-type: application/json
 
   {
-    "organization_name": "Ozzy",
+    "organization_name": "Ozzy2",
     "organization_description": "Fastfood",
-    "organization_email": "ozzy@gmail.com",
-    "organization_phone": "+38012311377"
+    "organization_email": "ozzy2@gmail.com",
+    "organization_phone": "+38012311337"
   }
   # {
   #   "organization_name": "Macdonalds",
@@ -195,6 +179,17 @@ content-type: application/json
 
 ###
 DELETE {{protocol}}://{{host}}:{{port}}/api/organizations/2 HTTP/1.1
+###
+POST  {{protocol}}://{{host}}:{{port}}/api/organizations/users HTTP/1.1
+content-type: application/json
+
+  {
+    "user_id": 2,
+    "organization_id": 1,
+    "organization_role_id": 1
+  }
+###
+DELETE {{protocol}}://{{host}}:{{port}}/api/organizations/1/user/2 HTTP/1.1
 
 
 //======================================Users organizations api======================================
