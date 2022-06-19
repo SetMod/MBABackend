@@ -1,7 +1,5 @@
 from flask import Blueprint, jsonify, request
 from models.UsersModel import Users
-from models.UsersOrganizationsModel import UsersOrganizations
-from services.UsersOrganizationsService import UsersOrganizationsService
 from services.UsersService import UsersService
 
 users_api = Blueprint('users', __name__)
@@ -11,10 +9,14 @@ users_service = UsersService()
 
 @users_api.get('/')
 def get_all_users():
-    users = users_service.get_all_users()
+    role_name = request.args.get('role_name')
+    if role_name:
+        users = users_service.get_users_by_role(role_name)
+    else:
+        users = users_service.get_all_users()
 
-    if users is None:
-        return 'Users not found', 404
+    if isinstance(users, str):
+        return users, 404
     else:
         return jsonify(users), 200
 
@@ -22,29 +24,21 @@ def get_all_users():
 @users_api.get('/<int:user_id>')
 def get_user_by_id(user_id: int):
     user = users_service.get_user_by_id(user_id)
+    role = users_service.get_user_role(user_id)
 
-    if user is None:
-        return 'User not found', 404
-    else:
-        return jsonify(user), 200
+    if isinstance(user, str) or isinstance(role, str):
+        return user, 404
 
-
-@users_api.get('/?role_name=<string:role_name>')
-def get_users_by_role(role_name: str):
-    users = users_service.get_users_by_role(role_name)
-
-    if users is None:
-        return 'Users not found', 404
-    else:
-        return jsonify(users), 200
+    user = {**user, **role}
+    return jsonify(user), 200
 
 
 @users_api.get('/<int:user_id>/organizations')
 def get_user_organizations(user_id: int):
     user_organizations = users_service.get_user_organizations(user_id)
 
-    if user_organizations is None:
-        return 'Organizations not found', 404
+    if isinstance(user_organizations, str):
+        return user_organizations, 404
     else:
         return jsonify(user_organizations), 200
 
@@ -53,8 +47,8 @@ def get_user_organizations(user_id: int):
 def get_user_files(user_id: int):
     user_files = users_service.get_user_files(user_id)
 
-    if user_files is None:
-        return 'Files not found', 404
+    if isinstance(user_files, str):
+        return user_files, 404
     else:
         return jsonify(user_files), 200
 
@@ -63,8 +57,8 @@ def get_user_files(user_id: int):
 def get_user_reports(user_id: int):
     user_reports = users_service.get_user_reports(user_id)
 
-    if user_reports is None:
-        return 'Reports not found', 404
+    if isinstance(user_reports, str):
+        return user_reports, 404
     else:
         return jsonify(user_reports), 200
 
@@ -73,19 +67,21 @@ def get_user_reports(user_id: int):
 def get_user_by_credentials():
     user_username = request.json['user_username']
     user_password = request.json['user_password']
-    print(request.json)
 
     if user_username is None:
-        return jsonify({'user_password': ['Field don\'t specified']}), 404
+        return 'Field "user_username" don\'t specified', 404
     if user_password is None:
-        return jsonify({'user_password': ['Field don\'t specified']}), 404
+        return 'Field "user_password" don\'t specified', 404
 
     user = users_service.get_user_by_credentials(user_username, user_password)
-    print(user)
-    if user is None:
-        return "User not found", 404
-    else:
-        return jsonify(user), 201
+
+    if isinstance(user, str):
+        return user, 404
+
+    role = users_service.get_user_role(user['user_id'])
+
+    user = {**user, **role}
+    return jsonify(user), 200
 
 
 @users_api.post('/')
@@ -97,8 +93,8 @@ def create_user():
 
     created_user = users_service.create_user(user)
 
-    if created_user is None:
-        return "Failed to create a user", 400
+    if isinstance(created_user, str):
+        return created_user, 400
     else:
         return jsonify(created_user), 201
 
@@ -112,8 +108,8 @@ def update_user(user_id: int):
 
     updated_user = users_service.update_user(user_id, user)
 
-    if updated_user is None:
-        return "Failed to update a user", 400
+    if isinstance(updated_user, str):
+        return updated_user, 400
     else:
         return jsonify(updated_user), 200
 
@@ -122,7 +118,7 @@ def update_user(user_id: int):
 def delete_user(user_id: int):
     deleted_user = users_service.delete_user(user_id)
 
-    if deleted_user is None:
-        return "Failed to delete a user", 400
+    if isinstance(deleted_user, str):
+        return deleted_user, 400
     else:
         return jsonify(deleted_user), 200

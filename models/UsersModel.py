@@ -67,4 +67,7 @@ class UsersSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Users
         include_fk = True
+
+    # role = ma.Nested(RolesSchema)
+    # user_role = ma.HyperlinkRelated('roles.get_role_by_id', 'role_id')
     # role_id = ma.auto_field()
