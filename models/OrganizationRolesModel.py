@@ -20,6 +20,9 @@ class OrganizationRoles(db.Model):
         db.Text,
         nullable=False)
 
+    def __repr__(self):
+        return f'<OrganizationRole(organization_role_id={self.organization_role_id},organization_role_name={self.organization_role_name}>'
+
 
 class OrganizationRolesSchema(ma.SQLAlchemyAutoSchema):
     class Meta():
