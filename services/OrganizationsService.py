@@ -7,6 +7,7 @@ from models.ReportsModel import ReportsSchema
 from models.UsersModel import Users, UsersSchema
 from models.UsersOrganizationsModel import UsersOrganizations
 from services.OrganizationRolesService import OrganizationRolesService
+from services.UsersOrganizationsService import UsersOrganizationsService
 from services.UsersService import UsersService
 
 
@@ -15,6 +16,7 @@ class OrganizationsService():
     def __init__(self) -> None:
         self.users_service = UsersService()
         self.organization_roles_service = OrganizationRolesService()
+        self.users_organizations_service = UsersOrganizationsService()
         self.organizations_schema = OrganizationsSchema()
         self.organization_roles_schema = OrganizationRolesSchema()
         self.users_schema = UsersSchema()
@@ -186,13 +188,25 @@ class OrganizationsService():
     def add_user_to_organization(self, user_organization: UsersOrganizations, dump: bool = True):
         user = self.users_service.get_user_by_id(
             user_organization.user_id, dump=False)
+        if isinstance(user, str):
+            return user
+
         organization = self.get_organization_by_id(
             user_organization.organization_id, dump=False)
+        if isinstance(organization, str):
+            return user
+
         organization_role = self.organization_roles_service.get_organization_role_by_id(
             user_organization.organization_role_id, dump=False)
+        if isinstance(organization_role, str):
+            return organization_role
 
-        if user is None or organization is None or organization_role is None:
-            return None
+        if isinstance(user, Users) and isinstance(organization, Organizations):
+            existing_user_organization = self.users_organizations_service.get_user_organization(
+                user.user_id, organization.organization_id, dump=False)
+
+            if isinstance(existing_user_organization, UsersOrganizations):
+                return 'User already in this organization'
 
         try:
             # user.user_organizations.append(organization)
@@ -208,11 +222,10 @@ class OrganizationsService():
             # return self.users_schema.dump(user) if dump else user
         except Exception as err:
             print(err)
-            return None
+            return 'Failed to add user to organization'
 
     def update_organization(self, organization_id: int, updated_organization: Organizations, dump: bool = True):
         organization = self.get_organization_by_id(organization_id, dump=False)
-
         if not isinstance(organization, Organizations):
             return organization
 
@@ -245,12 +258,18 @@ class OrganizationsService():
 
     def delete_user_from_organization(self,  user_id: int, organization_id: int, dump: bool = True):
         user = self.users_service.get_user_by_id(user_id, dump=False)
+        if not isinstance(organization, Organizations):
+            return organization
+
         organization = self.get_organization_by_id(
             organization_id, dump=False)
-        user_organization = db.session.query(UsersOrganizations).where(
-            UsersOrganizations.user_id == user_id).where(UsersOrganizations.organization_id == organization_id).first()
-        if user is None or organization is None:
-            return None
+        if isinstance(organization, str):
+            return user
+
+        user_organization = self.users_organizations_service.get_user_organization(
+            user.user_id, organization.organization_id, dump=False)
+        if isinstance(user_organization, str):
+            return user_organization
 
         try:
             # user.user_organizations.remove(organization)
@@ -260,11 +279,10 @@ class OrganizationsService():
             # return self.users_schema.dump(user) if dump else user
         except Exception as err:
             print(err)
-            return None
+            return 'Failed to delete user from organization'
 
     def delete_organization(self, organization_id: int, dump: bool = True):
         organization = self.get_organization_by_id(organization_id, dump=False)
-
         if not isinstance(organization, Organizations):
             return organization
 
