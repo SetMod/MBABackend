@@ -1,4 +1,3 @@
-from typing import Literal
 from marshmallow import ValidationError
 from models.RolesModel import Roles, RolesSchema
 from app import db

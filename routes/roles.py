@@ -10,10 +10,10 @@ roles_service = RolesService()
 def get_all_roles():
     roles = roles_service.get_all_roles()
 
-    if isinstance(roles, list):
-        return jsonify(roles), 200
-    else:
+    if isinstance(roles, str):
         return roles, 404
+    else:
+        return jsonify(roles), 200
 
 
 @roles_api.get('/<int:role_id>')
@@ -48,7 +48,7 @@ def update_role(role_id: int):
 
     updated_role = roles_service.update_role(role_id, role)
 
-    if isinstance(role, str):
+    if isinstance(updated_role, str):
         return updated_role, 400
     else:
         return jsonify(updated_role), 200
