@@ -13,8 +13,8 @@ users_organizations_service = UsersOrganizationsService()
 def get_all_organizations():
     organizations = organizations_service.get_all_organizations()
 
-    if organizations is None:
-        return 'Organizations not found', 404
+    if isinstance(organizations, str):
+        return organizations, 404
     else:
         return jsonify(organizations), 200
 
@@ -24,8 +24,8 @@ def get_organization_by_id(organization_id: int):
     organization = organizations_service.get_organization_by_id(
         organization_id)
 
-    if organization is None:
-        return 'Organization not found', 404
+    if isinstance(organization, str):
+        return organization, 404
     else:
         return jsonify(organization), 200
 
@@ -35,10 +35,20 @@ def get_organization_users(organization_id: int):
     organization_users = organizations_service.get_organization_users(
         organization_id)
 
-    if organization_users is None:
-        return 'Users not found', 404
+    if isinstance(organization_users, str):
+        return organization_users, 404
     else:
         return jsonify(organization_users), 200
+
+
+@organizations_api.get('/user/<int:user_id>')
+def get_user_organizations(user_id: int):
+    user_organizations = organizations_service.get_user_organizations(user_id)
+
+    if isinstance(user_organizations, str):
+        return user_organizations, 404
+    else:
+        return jsonify(user_organizations), 200
 
 
 @organizations_api.get('/<int:organization_id>/files')
@@ -46,8 +56,8 @@ def get_organization_files(organization_id: int):
     organization_files = organizations_service.get_organization_files(
         organization_id)
 
-    if organization_files is None:
-        return 'Files not found', 404
+    if isinstance(organization_files, str):
+        return organization_files, 404
     else:
         return jsonify(organization_files), 200
 
@@ -57,8 +67,8 @@ def get_organization_reports(organization_id: int):
     organization_reports = organizations_service.get_organization_reports(
         organization_id)
 
-    if organization_reports is None:
-        return 'Reports not found', 404
+    if isinstance(organization_reports, str):
+        return organization_reports, 404
     else:
         return jsonify(organization_reports), 200
 
@@ -71,13 +81,13 @@ def add_user_to_organization():
     if not isinstance(user_organization, UsersOrganizations):
         return jsonify(user_organization), 400
 
-    added_user_organization = organizations_service.add_user_to_organization(
+    created_user_organization = organizations_service.add_user_to_organization(
         user_organization)
-    print(added_user_organization)
-    if added_user_organization is None:
-        return 'Failed to add user to organization', 400
+
+    if isinstance(created_user_organization, str):
+        return created_user_organization, 404
     else:
-        return jsonify(added_user_organization), 201
+        return jsonify(created_user_organization), 201
 
 
 @organizations_api.post('/')
@@ -89,8 +99,8 @@ def create_organization():
     created_organization = organizations_service.create_organization(
         organization)
 
-    if created_organization is None:
-        return "Failed to create an organization", 400
+    if isinstance(created_organization, str):
+        return created_organization, 404
     else:
         return jsonify(created_organization), 201
 
