@@ -29,7 +29,7 @@ class Organizations(db.Model):
 
     organization_phone = db.Column(
         'organization_phone',
-        db.String(13),
+        db.String(18),
         unique=True)
 
     organization_create_date = db.Column(
