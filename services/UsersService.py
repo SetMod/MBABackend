@@ -180,24 +180,23 @@ class UsersService():
 
     def update_user(self, user_id: int, updated_user: Users, dump: bool = True):
         user = self.get_user_by_id(user_id, dump=False)
-
         if not isinstance(user, Users):
             return user
 
         existing_user = self.get_user_by_username(
             updated_user.user_username, dump=False)
-        if isinstance(existing_user, Users):
+        if isinstance(existing_user, Users) and user.user_username != updated_user.user_username:
             return f'Username is already taken'
 
         existing_user = self.get_user_by_email(
             updated_user.user_email, dump=False)
-        if isinstance(existing_user, Users):
+        if isinstance(existing_user, Users) and user.user_email != updated_user.user_email:
             return 'Email is already taken'
 
         if updated_user.user_phone:
             existing_user = self.get_user_by_phone(
                 updated_user.user_phone, dump=False)
-            if isinstance(existing_user, Users):
+            if isinstance(existing_user, Users) and user.user_phone != updated_user.user_phone:
                 return f'Phone is already taken'
 
         user.user_first_name = updated_user.user_first_name
@@ -212,7 +211,7 @@ class UsersService():
             return self.users_schema.dump(user) if dump else user
         except Exception as err:
             print(err)
-            return 'Failed to create a user'
+            return 'Failed to update user'
 
     def delete_user(self, user_id: int, dump: bool = True):
         user = self.get_user_by_id(user_id, dump=False)
