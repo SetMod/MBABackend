@@ -85,7 +85,7 @@ def add_user_to_organization():
         user_organization)
 
     if isinstance(created_user_organization, str):
-        return created_user_organization, 404
+        return created_user_organization, 400
     else:
         return jsonify(created_user_organization), 201
 
@@ -100,7 +100,7 @@ def create_organization():
         organization)
 
     if isinstance(created_organization, str):
-        return created_organization, 404
+        return created_organization, 400
     else:
         return jsonify(created_organization), 201
 
@@ -114,10 +114,10 @@ def update_organization(organization_id: int):
     updated_organization = organizations_service.update_organization(
         organization_id, organization)
 
-    if updated_organization is None:
-        return "Failed to update an organization", 400
+    if isinstance(updated_organization, str):
+        return updated_organization, 400
     else:
-        return jsonify(updated_organization), 201
+        return jsonify(updated_organization), 200
 
 
 @organizations_api.delete('/<int:organization_id>/user/<int:user_id>')

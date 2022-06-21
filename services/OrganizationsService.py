@@ -231,18 +231,18 @@ class OrganizationsService():
 
         existing_organization = self.get_organization_by_name(
             updated_organization.organization_name, dump=False)
-        if isinstance(existing_organization, Organizations):
+        if isinstance(existing_organization, Organizations) and organization.organization_name != updated_organization.organization_name:
             return f'Name is already taken'
 
         existing_organization = self.get_organization_by_email(
             updated_organization.organization_email, dump=False)
-        if isinstance(existing_organization, Organizations):
+        if isinstance(existing_organization, Organizations) and organization.organization_email != updated_organization.organization_email:
             return 'Email is already taken'
 
         if updated_organization.organization_phone:
             existing_organization = self.get_organization_by_phone(
                 updated_organization.organization_phone, dump=False)
-            if isinstance(existing_organization, Organizations):
+            if isinstance(existing_organization, Organizations) and organization.organization_phone != updated_organization.organization_phone:
                 return f'Phone is already taken'
 
         organization.organization_name = updated_organization.organization_name
