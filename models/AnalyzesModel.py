@@ -20,6 +20,26 @@ class Analyzes(db.Model):
         db.Text,
         nullable=False)
 
+    analyze_support = db.Column(
+        'analyze_support',
+        db.Float,
+        nullable=False)
+
+    analyze_lift = db.Column(
+        'analyze_lift',
+        db.Float,
+        nullable=False)
+
+    analyze_confidence = db.Column(
+        'analyze_confidence',
+        db.Float,
+        nullable=False)
+
+    analyze_rules_length = db.Column(
+        'analyze_rules_length',
+        db.Integer,
+        nullable=False)
+
     analyze_file_path = db.Column(
         'analyze_file_path',
         db.String(255),

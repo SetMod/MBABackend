@@ -10,8 +10,8 @@ analyzes_service = AnalyzesService()
 def get_all_analyzes():
     analyzes = analyzes_service.get_all_analyzes()
 
-    if analyzes is None:
-        return 'Analyzes not found', 404
+    if isinstance(analyzes, str):
+        return analyzes, 404
     else:
         return jsonify(analyzes), 200
 
@@ -20,8 +20,8 @@ def get_all_analyzes():
 def get_analyze_by_id(analyze_id: int):
     analyze = analyzes_service.get_analyze_by_id(analyze_id)
 
-    if analyze is None:
-        return 'Analyze not found', 404
+    if isinstance(analyze, str):
+        return analyze, 404
     else:
         return jsonify(analyze), 200
 
@@ -35,8 +35,8 @@ def create_analyze():
 
     created_analyze = analyzes_service.create_analyze(analyze)
 
-    if created_analyze is None:
-        return 'Failed to create an analyze', 400
+    if isinstance(created_analyze, str):
+        return created_analyze, 400
     else:
         return jsonify(created_analyze), 201
 
@@ -50,8 +50,8 @@ def update_analyze(analyze_id: int):
 
     updated_analyze = analyzes_service.update_analyze(analyze_id, analyze)
 
-    if updated_analyze is None:
-        return 'Failed to update an analyze', 400
+    if isinstance(updated_analyze, str):
+        return updated_analyze, 400
     else:
         return jsonify(updated_analyze), 201
 
@@ -60,7 +60,7 @@ def update_analyze(analyze_id: int):
 def delete_role(analyze_id: int):
     deleted_analyze = analyzes_service.delete_analyze(analyze_id)
 
-    if deleted_analyze is None:
-        return 'Failed to delete an analyze', 400
+    if isinstance(deleted_analyze, str):
+        return deleted_analyze, 400
     else:
         return jsonify(deleted_analyze), 200
