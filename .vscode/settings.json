@@ -11,6 +11,7 @@
         "figsize",
         "fpgrowth",
         "histtype",
+        "itemsets",
         "matplotlib",
         "rwidth",
         "sqlalchemy",

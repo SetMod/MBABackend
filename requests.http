@@ -11,6 +11,8 @@ GET {{protocol}}://{{host}}:{{port}}/api/roles/ HTTP/1.1
 
 ###
 GET {{protocol}}://{{host}}:{{port}}/api/roles/3 HTTP/1.1
+###
+GET {{protocol}}://{{host}}:{{port}}/api/roles/User HTTP/1.1
 
 ###
 POST {{protocol}}://{{host}}:{{port}}/api/roles/ HTTP/1.1
@@ -51,18 +53,18 @@ POST {{protocol}}://{{host}}:{{port}}/api/organization_roles/ HTTP/1.1
 content-type: application/json
 
 {
-    "organization_role_name": "User",
-    "organization_role_description": "Role for standart user"
+    "organization_role_name": "Admin ",
+    "organization_role_description": "Role for admin user"
 }
 ###
 GET {{protocol}}://{{host}}:{{port}}/api/organization_roles/ HTTP/1.1
 ###
-PUT {{protocol}}://{{host}}:{{port}}/api/organization_roles/3 HTTP/1.1
+PUT {{protocol}}://{{host}}:{{port}}/api/organization_roles/2 HTTP/1.1
 content-type: application/json
 
 {
-    "organization_role_name": "Admins",
-    "organization_role_description": "Role for standart admin"
+    "organization_role_name": "Admin",
+    "organization_role_description": "Role for admin user"
 }
 
 ###
@@ -148,21 +150,15 @@ GET {{protocol}}://{{host}}:{{port}}/api/organizations/2/files HTTP/1.1
 GET {{protocol}}://{{host}}:{{port}}/api/organizations/2/reports HTTP/1.1
 
 ###
-POST {{protocol}}://{{host}}:{{port}}/api/organizations/ HTTP/1.1
+POST {{protocol}}://{{host}}:{{port}}/api/organizations/?user_id=2 HTTP/1.1
 content-type: application/json
 
   {
-    "organization_name": "Ozzy2",
-    "organization_description": "Fastfood",
-    "organization_email": "ozzy2@gmail.com",
-    "organization_phone": "+38012311337"
+    "organization_name": "Admins",
+    "organization_description": "Admins org",
+    "organization_email": "admns@gmail.com",
+    "organization_phone": "+32342341337"
   }
-  # {
-  #   "organization_name": "Macdonalds",
-  #   "organization_description": "Fastfood",
-  #   "organization_email": "mac@gmail.com",
-  #   "organization_phone": "+38012311321"
-  # }
 
 ###
 GET {{protocol}}://{{host}}:{{port}}/api/organizations/ HTTP/1.1
@@ -178,7 +174,7 @@ content-type: application/json
   }
 
 ###
-DELETE {{protocol}}://{{host}}:{{port}}/api/organizations/2 HTTP/1.1
+DELETE {{protocol}}://{{host}}:{{port}}/api/organizations/8 HTTP/1.1
 ###
 POST  {{protocol}}://{{host}}:{{port}}/api/organizations/users HTTP/1.1
 content-type: application/json
@@ -208,7 +204,7 @@ GET {{protocol}}://{{host}}:{{port}}/api/files/ HTTP/1.1
 ###
 GET {{protocol}}://{{host}}:{{port}}/api/files/1 HTTP/1.1
 ###
-GET {{protocol}}://{{host}}:{{port}}/api/files/download/3 HTTP/1.1
+GET {{protocol}}://{{host}}:{{port}}/api/files/download/1 HTTP/1.1
 
 # ###
 # POST {{protocol}}://{{host}}:{{port}}/api/files/upload/ HTTP/1.1
@@ -300,17 +296,31 @@ DELETE {{protocol}}://{{host}}:{{port}}/api/reports/3 HTTP/1.1
 GET {{protocol}}://{{host}}:{{port}}/api/analyzes/ HTTP/1.1
 
 ###
-GET {{protocol}}://{{host}}:{{port}}/api/analyzes/1 HTTP/1.1
+GET {{protocol}}://{{host}}:{{port}}/api/analyzes/4 HTTP/1.1
+###
+GET {{protocol}}://{{host}}:{{port}}/api/analyzes/download/4 HTTP/1.1
 
 ###
-POST {{protocol}}://{{host}}:{{port}}/api/analyzes/ HTTP/1.1
+POST  {{protocol}}://{{host}}:{{port}}/api/analyzes/?file_id=1 HTTP/1.1
 content-type: application/json
 
+  # {
+  #   "analyze_name": "TheFirstReport3",
+  #   "analyze_description": "the moste important report ever",
+  #   "analyze_support": 0.1,
+  #   "analyze_lift": 0.1,
+  #   "analyze_confidence": 0.1,
+  #   "analyze_rules_length": 1,
+  #   "report_id": 1
+  # }
   {
     "analyze_name": "TheFirstReport3",
     "analyze_description": "the moste important report ever",
-    "analyze_file_path": "some path",
-    "report_id": 3
+    "analyze_support": 0.01,
+    "analyze_lift": 0.01,
+    "analyze_confidence": 0.01,
+    "analyze_rules_length": 3,
+    "report_id": 1
   }
 
 ###
@@ -320,7 +330,10 @@ content-type: application/json
   {
     "analyze_name": "First analyze",
     "analyze_description": "the moste important analyze ever",
-    "analyze_file_path": "some path",
+    "analyze_support": 0.1,
+    "analyze_lift": 0.1,
+    "analyze_confidence": 0.1,
+    "analyze_rules_length": 3,
     "report_id": 1
   }
 
@@ -334,9 +347,12 @@ DELETE {{protocol}}://{{host}}:{{port}}/api/analyzes/3 HTTP/1.1
 //======================================Visualizations api======================================
 ###
 GET {{protocol}}://{{host}}:{{port}}/api/visualizations/ HTTP/1.1
-
 ###
 GET {{protocol}}://{{host}}:{{port}}/api/visualizations/1 HTTP/1.1
+###
+GET {{protocol}}://{{host}}:{{port}}/api/visualizations/data/4 HTTP/1.1
+###
+GET {{protocol}}://{{host}}:{{port}}/api/visualizations/download/4 HTTP/1.1
 
 ###
 POST {{protocol}}://{{host}}:{{port}}/api/visualizations/ HTTP/1.1
@@ -344,8 +360,7 @@ content-type: application/json
 
   {
     "visualization_name": "first visualization",
-    "visualization_image_path": "the most important visualization ever",
-    "report_id": 3
+    "report_id": 1
   }
 
 ###
@@ -359,4 +374,4 @@ content-type: application/json
   }
 
 ###
-DELETE {{protocol}}://{{host}}:{{port}}/api/visualizations/2 HTTP/1.1
+DELETE {{protocol}}://{{host}}:{{port}}/api/visualizations/1 HTTP/1.1
