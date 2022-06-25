@@ -18,8 +18,8 @@ def get_all_users_organizations():
     else:
         users_organizations = users_organizations_service.get_all_users_organizations()
 
-    if users_organizations is None:
-        return 'Users organizations not found', 404
+    if isinstance(users_organizations, str):
+        return users_organizations, 404
     else:
         return jsonify(users_organizations), 200
 
@@ -30,11 +30,14 @@ def get_user_organization_role():
     organization_id = request.args.get('organization_id', type=int)
     users_organizations = None
 
-    if user_id is not None and organization_id is not None:
-        users_organizations = users_organizations_service.get_user_organization_role(
-            user_id, organization_id)
-    if users_organizations is None:
-        return 'User organization role not found', 404
+    if user_id is None or organization_id is None:
+        return 'User id or organization id are not specified', 400
+
+    users_organizations = users_organizations_service.get_user_organization_role(
+        user_id, organization_id)
+
+    if isinstance(users_organizations, str):
+        return users_organizations, 404
     else:
         return jsonify(users_organizations), 200
 
@@ -50,7 +53,7 @@ def add_user_to_organization():
     added_user_organization = users_organizations_service.add_user_to_organizations(
         user_organization)
 
-    if added_user_organization is None:
-        return 'Failed to add user to organization', 400
+    if isinstance(added_user_organization, str):
+        return added_user_organization, 400
     else:
         return jsonify(added_user_organization), 201

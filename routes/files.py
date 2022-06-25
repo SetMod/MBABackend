@@ -13,8 +13,8 @@ files_service = FilesService()
 def get_all_files():
     files = files_service.get_all_files()
 
-    if files is None:
-        return 'Files not found', 404
+    if isinstance(files, str):
+        return files, 404
     else:
         return jsonify(files), 200
 
@@ -23,8 +23,8 @@ def get_all_files():
 def get_file_by_id(file_id: int):
     file = files_service.get_file_by_id(file_id)
 
-    if file is None:
-        return 'File not found', 404
+    if isinstance(file, str):
+        return file, 404
     else:
         return jsonify(file), 200
 
@@ -33,11 +33,14 @@ def get_file_by_id(file_id: int):
 def download_file_by_id(file_id: int):
     file = files_service.get_file_by_id(file_id)
 
-    if file is None:
-        return 'File not found', 404
+    if isinstance(file, str):
+        return file, 404
 
-    name = os.path.basename(file['file_path'])
-    return send_from_directory(UPLOAD_FOLDER, name, as_attachment=True)
+    if not os.path.exists(file['file_path']):
+        return 'File path doesn\'t exists', 400
+
+    file_name = os.path.basename(file['file_path'])
+    return send_from_directory(UPLOAD_FOLDER, file_name, file_name, as_attachment=True)
 
 
 def allowed_file(filename):
@@ -61,8 +64,6 @@ def create_file():
         return 'No selected file', 400
     if not allowed_file(csv_file.filename):
         return 'Not allowed file format', 400
-    if not csv_file:
-        return 'Failed to save a file', 400
 
     file = Files(file_name=file_name,
                  file_path='',
@@ -70,8 +71,8 @@ def create_file():
                  organization_id=organization_id)
     created_file = files_service.create_file(file, csv_file)
 
-    if created_file is None:
-        return 'Failed to save a file', 400
+    if isinstance(created_file, str):
+        return created_file, 400
     else:
         return jsonify(created_file)
 
@@ -85,8 +86,8 @@ def update_file(file_id: int):
 
     updated_file = files_service.update_file(file_id, file)
 
-    if updated_file is None:
-        return "Failed to update a file", 400
+    if isinstance(updated_file, str):
+        return updated_file, 400
     else:
         return jsonify(updated_file), 200
 
@@ -95,7 +96,7 @@ def update_file(file_id: int):
 def delete_role(file_id: int):
     deleted_file = files_service.delete_file(file_id)
 
-    if deleted_file is None:
-        return 'Failed to delete a file', 400
+    if isinstance(deleted_file, str):
+        return deleted_file, 400
     else:
         return jsonify(deleted_file), 200

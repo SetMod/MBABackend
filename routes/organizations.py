@@ -92,12 +92,17 @@ def add_user_to_organization():
 
 @organizations_api.post('/')
 def create_organization():
+    user_id = request.args.get('user_id')
+
+    if user_id is None:
+        return 'User id not specified', 400
+
     organization = organizations_service.map_organization(request.json)
     if not isinstance(organization, Organizations):
         return jsonify(organization), 400
 
     created_organization = organizations_service.create_organization(
-        organization)
+        organization, user_id)
 
     if isinstance(created_organization, str):
         return created_organization, 400

@@ -26,6 +26,16 @@ def get_role_by_id(role_id: int):
         return jsonify(role), 200
 
 
+@roles_api.get('/<string:role_name>')
+def get_role_by_name(role_name: str):
+    role = roles_service.get_role_by_name(role_name)
+
+    if isinstance(role, str):
+        return role, 404
+    else:
+        return jsonify(role), 200
+
+
 @roles_api.post('/')
 def create_role():
     role = roles_service.map_role(request.json)

@@ -1,4 +1,6 @@
-from flask import Blueprint, jsonify, request
+import os
+from flask import Blueprint, jsonify, request, send_from_directory
+from app import ANALYZES_UPLOAD_FOLDER
 from models.AnalyzesModel import Analyzes
 from services.AnalyzesService import AnalyzesService
 
@@ -26,19 +28,40 @@ def get_analyze_by_id(analyze_id: int):
         return jsonify(analyze), 200
 
 
+@analyzes_api.get('/download/<int:analyze_id>')
+def download_analyze_by_id(analyze_id: int):
+    analyze = analyzes_service.get_analyze_by_id(analyze_id)
+
+    if isinstance(analyze, str):
+        return analyze, 404
+
+    if not os.path.exists(analyze['analyze_file_path']):
+        return 'File path doesn\'t exists', 400
+
+    file_name = os.path.basename(analyze['analyze_file_path'])
+    return send_from_directory(ANALYZES_UPLOAD_FOLDER, file_name, file_name, as_attachment=True)
+
+
 @analyzes_api.post('/')
 def create_analyze():
+    request.json['analyze_file_path'] = 'None'
+    file_id = request.args.get('file_id')
+
+    if file_id is None:
+        return 'The file id is not specified'
+
     analyze = analyzes_service.map_analyze(request.json)
 
     if not isinstance(analyze, Analyzes):
         return jsonify(analyze), 400
 
-    created_analyze = analyzes_service.create_analyze(analyze)
+    created_analyze = analyzes_service.create_analyze(
+        analyze, file_id)
 
     if isinstance(created_analyze, str):
         return created_analyze, 400
     else:
-        return jsonify(created_analyze), 201
+        return created_analyze.to_json(orient='records'), 201
 
 
 @analyzes_api.put('/<int:analyze_id>')
