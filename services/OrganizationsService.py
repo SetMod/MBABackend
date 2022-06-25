@@ -160,9 +160,10 @@ class OrganizationsService():
             print(err)
             return 'Failed to get organization'
 
-    def create_organization(self, new_organization: Organizations, dump: bool = True):
+    def create_organization(self, new_organization: Organizations, user_id: int, dump: bool = True):
         existing_organization = self.get_organization_by_name(
             new_organization.organization_name, dump=False)
+
         if isinstance(existing_organization, Organizations):
             return f'Name is already taken'
 
@@ -177,9 +178,19 @@ class OrganizationsService():
             if isinstance(existing_organization, Organizations):
                 return f'Phone is already taken'
 
+        organization_role = self.organization_roles_service.get_organization_role_by_name(
+            'Admin', dump=False)
+        print(organization_role)
         try:
             db.session.add(new_organization)
             db.session.commit()
+
+            if not isinstance(organization_role, OrganizationRoles):
+                return organization_role
+            user_organization = UsersOrganizations(
+                organization_id=new_organization.organization_id, user_id=user_id, organization_role_id=organization_role.organization_role_id)
+            self.add_user_to_organization(user_organization)
+
             return self.organizations_schema.dump(new_organization) if dump else new_organization
         except Exception as err:
             print(err)
@@ -258,8 +269,8 @@ class OrganizationsService():
 
     def delete_user_from_organization(self,  user_id: int, organization_id: int, dump: bool = True):
         user = self.users_service.get_user_by_id(user_id, dump=False)
-        if not isinstance(organization, Organizations):
-            return organization
+        if not isinstance(user, Users):
+            return user
 
         organization = self.get_organization_by_id(
             organization_id, dump=False)

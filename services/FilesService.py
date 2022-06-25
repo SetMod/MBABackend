@@ -12,20 +12,29 @@ class FilesService():
         self.files_schema = FilesSchema()
 
     def get_all_files(self, dump: bool = True):
-        files = db.session.query(Files).all()
+        try:
+            files = db.session.query(Files).all()
 
-        if len(files) > 0:
-            return self.files_schema.dump(files, many=True) if dump else files
-        else:
-            return None
+            if len(files) > 0:
+                return self.files_schema.dump(files, many=True) if dump else files
+            else:
+                return None
+        except Exception as err:
+            print(err)
+            return 'Failed to get files'
 
     def get_file_by_id(self, file_id: int, dump: bool = True):
-        file = db.session.query(Files).where(Files.file_id == file_id).first()
+        try:
+            file = db.session.query(Files).where(
+                Files.file_id == file_id).first()
 
-        if isinstance(file, Files):
-            return self.files_schema.dump(file) if dump else file
-        else:
-            return None
+            if isinstance(file, Files):
+                return self.files_schema.dump(file) if dump else file
+            else:
+                return 'File not found'
+        except Exception as err:
+            print(err)
+            return 'Failed to get file'
 
     def create_file(self, file: Files, csv_file: FieldStorage, dump: bool = True):
         try:
@@ -39,37 +48,40 @@ class FilesService():
 
             db.session.commit()
             return self.files_schema.dump(file) if dump else file
-        except Exception:
-            return None
+        except Exception as err:
+            print(err)
+            return 'Failed to create file'
 
     def update_file(self, file_id: int, updated_file: Files, dump: bool = True):
         file = self.get_file_by_id(file_id=file_id, dump=False)
 
+        if not isinstance(file, Files):
+            return file
+
         try:
-            if isinstance(file, Files):
-                file.file_name = updated_file.file_name
-                # file.file_path = updated_file.file_path
-                db.session.commit()
-                return self.files_schema.dump(file) if dump else file
-            else:
-                return None
-        except Exception:
-            return None
+            file.file_name = updated_file.file_name
+            # file.file_path = updated_file.file_path
+            db.session.commit()
+            return self.files_schema.dump(file) if dump else file
+        except Exception as err:
+            print(err)
+            return 'Failed to update file'
 
     def delete_file(self, file_id: int, dump: bool = True):
         file = self.get_file_by_id(file_id=file_id, dump=False)
 
+        if not isinstance(file, Files):
+            return file
+
         try:
-            if isinstance(file, Files):
-                if os.path.exists(file.file_path):
-                    os.remove(file.file_path)
-                db.session.delete(file)
-                db.session.commit()
-                return self.files_schema.dump(file) if dump else file
-            else:
-                return None
-        except Exception:
-            return None
+            if os.path.exists(file.file_path):
+                os.remove(file.file_path)
+            db.session.delete(file)
+            db.session.commit()
+            return self.files_schema.dump(file) if dump else file
+        except Exception as err:
+            print(err)
+            return 'Failed to delete file'
 
     def map_file(self, file_dict: dict):
         try:

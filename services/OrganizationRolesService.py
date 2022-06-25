@@ -26,8 +26,8 @@ class OrganizationRolesService:
             return None
 
     def get_organization_role_by_name(self, name: str, dump: bool = True) -> OrganizationRoles:
-        organization_role = db.session.query(OrganizationRoles).filter_by(
-            role_name=name).first()
+        organization_role = db.session.query(OrganizationRoles).where(
+            OrganizationRoles.organization_role_name == name).first()
 
         if isinstance(organization_role, OrganizationRoles):
             return self.organization_roles_schema.dump(organization_role) if dump else organization_role
