@@ -58,7 +58,11 @@ class Analyzes(db.Model):
 
     report = db.relationship("Reports", backref="report_analyzes")
 
+    def __repr__(self):
+        return f'<Analyze(analyze_id={self.analyze_id},analyze_name={self.analyze_name},analyze_support={self.analyze_support},analyze_lift={self.analyze_lift},analyze_confidence={self.analyze_confidence},analyze_rules_length={self.analyze_rules_length},analyze_create_date={self.analyze_create_date},report_id={self.report_id})>'
+
 
 class AnalyzesSchema(ma.SQLAlchemyAutoSchema):
     class Meta():
         model = Analyzes
+        include_fk = True

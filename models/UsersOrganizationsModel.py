@@ -1,26 +1,5 @@
 from app import db, ma
 
-# users_organizations_table = db.Table('users_organizations',
-#                                      db.Column('user_id',
-#                                                db.Integer,
-#                                                db.ForeignKey("users.user_id"),
-#                                                primary_key=True),
-#                                      db.Column('organization_id',
-#                                                db.Integer,
-#                                                db.ForeignKey(
-#                                                    "organizations.organization_id"),
-#                                                primary_key=True),
-#                                      db.Column(
-#                                          'organization_role_id',
-#                                          db.Integer,
-#                                          db.ForeignKey("organization_roles.organization_role_id")))
-
-
-# class UsersOrganizationsSchema(ma.SQLAlchemyAutoSchema):
-#     class Meta():
-#         table = users_organizations_table
-#         include_fk = True
-
 
 class UsersOrganizations(db.Model):
     __tablename__ = "users_organizations"
@@ -64,3 +43,25 @@ class UsersOrganizationsSchema(ma.SQLAlchemyAutoSchema):
     class Meta():
         model = UsersOrganizations
         include_fk = True
+
+
+# users_organizations_table = db.Table('users_organizations',
+#                                      db.Column('user_id',
+#                                                db.Integer,
+#                                                db.ForeignKey("users.user_id"),
+#                                                primary_key=True),
+#                                      db.Column('organization_id',
+#                                                db.Integer,
+#                                                db.ForeignKey(
+#                                                    "organizations.organization_id"),
+#                                                primary_key=True),
+#                                      db.Column(
+#                                          'organization_role_id',
+#                                          db.Integer,
+#                                          db.ForeignKey("organization_roles.organization_role_id")))
+
+
+# class UsersOrganizationsSchema(ma.SQLAlchemyAutoSchema):
+#     class Meta():
+#         table = users_organizations_table
+#         include_fk = True

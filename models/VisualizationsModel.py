@@ -1,4 +1,6 @@
 from datetime import datetime
+
+from sqlalchemy import true
 from app import db, ma
 
 
@@ -37,4 +39,4 @@ class Visualizations(db.Model):
 class VisualizationsSchema(ma.SQLAlchemyAutoSchema):
     class Meta():
         model = Visualizations
-    report_id = ma.auto_field()
+        include_fk = true

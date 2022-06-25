@@ -28,7 +28,7 @@ class Users(db.Model):
 
     user_phone = db.Column(
         'user_phone',
-        db.String(13),
+        db.String(18),
         unique=True)
 
     user_username = db.Column(
