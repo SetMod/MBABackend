@@ -110,8 +110,11 @@ def update_user(user_id: int):
 
     if isinstance(updated_user, str):
         return updated_user, 400
-    else:
-        return jsonify(updated_user), 200
+
+    role = users_service.get_user_role(updated_user['user_id'])
+
+    user = {**updated_user, **role}
+    return jsonify(user), 200
 
 
 @users_api.delete('/<int:user_id>')

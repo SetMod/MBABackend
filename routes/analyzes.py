@@ -1,3 +1,4 @@
+from cmath import log
 import os
 from flask import Blueprint, jsonify, request, send_from_directory
 from app import ANALYZES_UPLOAD_FOLDER
@@ -36,7 +37,7 @@ def download_analyze_by_id(analyze_id: int):
         return analyze, 404
 
     if not os.path.exists(analyze['analyze_file_path']):
-        return 'File path doesn\'t exists', 400
+        return 'Analyze file doesn\'t exists', 400
 
     file_name = os.path.basename(analyze['analyze_file_path'])
     return send_from_directory(ANALYZES_UPLOAD_FOLDER, file_name, file_name, as_attachment=True)
