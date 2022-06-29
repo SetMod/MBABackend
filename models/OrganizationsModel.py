@@ -38,7 +38,7 @@ class Organizations(db.Model):
         default=datetime.utcnow)
 
     organization_users = db.relationship(
-        "UsersOrganizations", backref='organization')
+        "UsersOrganizations", backref='organization', cascade='save-update, merge, delete')
 
     def __repr__(self):
         return f'<Organization(organization_id={self.organization_id},organization_name={self.organization_name},organization_description={self.organization_description},organization_email={self.organization_email},organization_phone={self.organization_phone},organization_create_date={self.organization_create_date})>'

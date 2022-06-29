@@ -298,7 +298,7 @@ GET {{protocol}}://{{host}}:{{port}}/api/analyzes/ HTTP/1.1
 ###
 GET {{protocol}}://{{host}}:{{port}}/api/analyzes/4 HTTP/1.1
 ###
-GET {{protocol}}://{{host}}:{{port}}/api/analyzes/download/4 HTTP/1.1
+GET {{protocol}}://{{host}}:{{port}}/api/analyzes/download/2 HTTP/1.1
 
 ###
 POST  {{protocol}}://{{host}}:{{port}}/api/analyzes/?file_id=1 HTTP/1.1
