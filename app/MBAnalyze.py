@@ -6,8 +6,8 @@ import numpy as np
 
 
 class MBAnalyze():
-    preprocess_data_path = '../data/preprocessed_data'
-    data_transformation_path = '../data/preprocessed_data'
+    # preprocess_data_path = '../data/preprocessed_data'
+    # data_transformation_path = '../data/preprocessed_data'
     metrics = ['support', 'confidence', 'lift']
 
     def __init__(self, file_id: int, file_path: str, support: float = 0.5, lift: float = 1, confidence: float = 2, rules_length: int = 2, metric: str = 'support') -> None:
