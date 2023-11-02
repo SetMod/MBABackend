@@ -2,8 +2,8 @@ from cmath import log
 import os
 from flask import Blueprint, jsonify, request, send_from_directory
 from app import ANALYZES_UPLOAD_FOLDER
-from models.AnalyzesModel import Analyzes
-from services.AnalyzesService import AnalyzesService
+from app.models.AnalyzesModel import Analyzes
+from app.services.AnalyzesService import AnalyzesService
 
 analyzes_api = Blueprint('analyzes', __name__)
 analyzes_service = AnalyzesService()

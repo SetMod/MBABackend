@@ -1,12 +1,12 @@
 from marshmallow import ValidationError
-from models.FilesModel import FilesSchema
-from models.OrganizationsModel import OrganizationsSchema
-from models.ReportsModel import ReportsSchema
-from models.RolesModel import RolesSchema
-from models.UsersModel import Users, UsersSchema
-from services.OrganizationRolesService import OrganizationRolesService
-from services.RolesService import RolesService
-from services.UsersOrganizationsService import UsersOrganizationsService
+from app.models.FilesModel import FilesSchema
+from app.models.OrganizationsModel import OrganizationsSchema
+from app.models.ReportsModel import ReportsSchema
+from app.models.RolesModel import RolesSchema
+from app.models.UsersModel import Users, UsersSchema
+from app.services.OrganizationRolesService import OrganizationRolesService
+from app.services.RolesService import RolesService
+from app.services.UsersOrganizationsService import UsersOrganizationsService
 from app import db
 
 

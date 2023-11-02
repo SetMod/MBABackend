@@ -2,8 +2,8 @@ import os
 from flask import Blueprint, jsonify, request, send_from_directory
 from app import ALLOWED_EXTENSIONS, UPLOAD_FOLDER
 import app
-from models.FilesModel import Files
-from services.FilesService import FilesService
+from app.models.FilesModel import Files
+from app.services.FilesService import FilesService
 
 files_api = Blueprint('files', __name__)
 files_service = FilesService()

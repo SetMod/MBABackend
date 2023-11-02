@@ -2,7 +2,7 @@ from cgi import FieldStorage
 import os
 from marshmallow import ValidationError
 from app import UPLOAD_FOLDER, db
-from models.FilesModel import Files, FilesSchema
+from app.models.FilesModel import Files, FilesSchema
 from werkzeug.utils import secure_filename
 
 

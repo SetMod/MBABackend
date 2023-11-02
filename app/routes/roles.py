@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
-from models.RolesModel import Roles
-from services.RolesService import RolesService
+from app.models.RolesModel import Roles
+from app.services.RolesService import RolesService
 
 roles_api = Blueprint('roles', __name__)
 roles_service = RolesService()

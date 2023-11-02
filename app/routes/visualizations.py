@@ -2,8 +2,8 @@ import os
 import pandas as pd
 from flask import Blueprint, jsonify, request, send_from_directory
 from app import VISUALIZATIONS_UPLOAD_FOLDER
-from models.VisualizationsModel import Visualizations
-from services.VisualizationsService import VisualizationsService
+from app.models.VisualizationsModel import Visualizations
+from app.services.VisualizationsService import VisualizationsService
 
 visualizations_api = Blueprint('visualizations', __name__)
 visualizations_service = VisualizationsService()

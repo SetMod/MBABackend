@@ -1,5 +1,5 @@
 from marshmallow import ValidationError
-from models.OrganizationRolesModel import OrganizationRoles, OrganizationRolesSchema
+from app.models.OrganizationRolesModel import OrganizationRoles, OrganizationRolesSchema
 from app import db
 
 

@@ -3,11 +3,11 @@ import pandas as pd
 from marshmallow import ValidationError
 from app import ANALYZES_UPLOAD_FOLDER, db
 from app.MBAnalyze import MBAnalyze
-from models.AnalyzesModel import Analyzes, AnalyzesSchema
-from models.FilesModel import Files
-from models.VisualizationsModel import Visualizations
-from services.FilesService import FilesService
-from services.VisualizationsService import VisualizationsService
+from app.models.AnalyzesModel import Analyzes, AnalyzesSchema
+from app.models.FilesModel import Files
+from app.models.VisualizationsModel import Visualizations
+from app.services.FilesService import FilesService
+from app.services.VisualizationsService import VisualizationsService
 
 
 class AnalyzesService():

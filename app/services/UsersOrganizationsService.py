@@ -1,7 +1,7 @@
 from marshmallow import ValidationError
-from models.OrganizationRolesModel import OrganizationRolesSchema
-from models.UsersOrganizationsModel import UsersOrganizations, UsersOrganizationsSchema
-from services.OrganizationRolesService import OrganizationRolesService
+from app.models.OrganizationRolesModel import OrganizationRolesSchema
+from app.models.UsersOrganizationsModel import UsersOrganizations, UsersOrganizationsSchema
+from app.services.OrganizationRolesService import OrganizationRolesService
 from sqlalchemy.engine.row import Row
 from app import db
 

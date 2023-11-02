@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
-from models.UsersOrganizationsModel import UsersOrganizations
-from services.UsersOrganizationsService import UsersOrganizationsService
+from app.models.UsersOrganizationsModel import UsersOrganizations
+from app.services.UsersOrganizationsService import UsersOrganizationsService
 
 
 users_organizations_api = Blueprint('users_organizations', __name__)

@@ -1,5 +1,5 @@
 from marshmallow import ValidationError
-from models.RolesModel import Roles, RolesSchema
+from app.models.RolesModel import Roles, RolesSchema
 from app import db
 
 

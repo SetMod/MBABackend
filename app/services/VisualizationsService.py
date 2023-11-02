@@ -1,6 +1,6 @@
 import os
 from app import VISUALIZATIONS_UPLOAD_FOLDER, db
-from models.VisualizationsModel import Visualizations, VisualizationsSchema
+from app.models.VisualizationsModel import Visualizations, VisualizationsSchema
 import pandas as pd
 
 

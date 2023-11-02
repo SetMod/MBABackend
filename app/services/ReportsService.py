@@ -1,8 +1,8 @@
 from re import L
 from app import db
-from models.AnalyzesModel import AnalyzesSchema
-from models.VisualizationsModel import VisualizationsSchema
-from models.ReportsModel import Reports, ReportsSchema
+from app.models.AnalyzesModel import AnalyzesSchema
+from app.models.VisualizationsModel import VisualizationsSchema
+from app.models.ReportsModel import Reports, ReportsSchema
 
 
 class ReportsService():

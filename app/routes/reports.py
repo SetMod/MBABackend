@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
-from models.ReportsModel import Reports
+from app.models.ReportsModel import Reports
 
-from services.ReportsService import ReportsService
+from app.services.ReportsService import ReportsService
 
 reports_api = Blueprint('reports', __name__)
 reports_service = ReportsService()
