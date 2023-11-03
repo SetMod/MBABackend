@@ -1,12 +1,12 @@
 from flask import Blueprint, jsonify, request
-from app.models.RolesModel import Roles
-from app.services.RolesService import RolesService
+from app.models import Roles
+from app.services import RolesService
 
-roles_api = Blueprint('roles', __name__)
+roles_api = Blueprint("roles", __name__)
 roles_service = RolesService()
 
 
-@roles_api.get('/')
+@roles_api.get("/")
 def get_all_roles():
     roles = roles_service.get_all_roles()
 
@@ -16,9 +16,9 @@ def get_all_roles():
         return jsonify(roles), 200
 
 
-@roles_api.get('/<int:role_id>')
-def get_role_by_id(role_id: int):
-    role = roles_service.get_role_by_id(role_id)
+@roles_api.get("/<int:id>")
+def get_role_by_id(id: int):
+    role = roles_service.get_role_by_id(id)
 
     if isinstance(role, str):
         return role, 404
@@ -26,9 +26,9 @@ def get_role_by_id(role_id: int):
         return jsonify(role), 200
 
 
-@roles_api.get('/<string:role_name>')
-def get_role_by_name(role_name: str):
-    role = roles_service.get_role_by_name(role_name)
+@roles_api.get("/<string:name>")
+def get_role_by_name(name: str):
+    role = roles_service.get_role_by_name(name)
 
     if isinstance(role, str):
         return role, 404
@@ -36,7 +36,7 @@ def get_role_by_name(role_name: str):
         return jsonify(role), 200
 
 
-@roles_api.post('/')
+@roles_api.post("/")
 def create_role():
     role = roles_service.map_role(request.json)
     if not isinstance(role, Roles):
@@ -50,13 +50,13 @@ def create_role():
         return jsonify(new_role), 201
 
 
-@roles_api.put('/<int:role_id>')
-def update_role(role_id: int):
+@roles_api.put("/<int:id>")
+def update_role(id: int):
     role = roles_service.map_role(request.json)
     if not isinstance(role, Roles):
         return jsonify(role), 400
 
-    updated_role = roles_service.update_role(role_id, role)
+    updated_role = roles_service.update_role(id, role)
 
     if isinstance(updated_role, str):
         return updated_role, 400
@@ -64,9 +64,9 @@ def update_role(role_id: int):
         return jsonify(updated_role), 200
 
 
-@roles_api.delete('/<int:role_id>')
-def delete_role(role_id: int):
-    deleted_role = roles_service.delete_role(role_id)
+@roles_api.delete("/<int:id>")
+def delete_role(id: int):
+    deleted_role = roles_service.delete_role(id)
 
     if isinstance(deleted_role, str):
         return deleted_role, 400
