@@ -19,8 +19,8 @@ POST {{protocol}}://{{host}}:{{port}}/api/roles/ HTTP/1.1
 content-type: application/json
 
 {
-    "role_name": "Admin2",
-    "role_description": "Role for admin user"
+    "name": "Admin2",
+    "description": "Role for admin user"
 }
 
 ###
@@ -30,8 +30,8 @@ PUT {{protocol}}://{{host}}:{{port}}/api/roles/4 HTTP/1.1
 content-type: application/json
 
 {
-    "role_name": "User2",
-    "role_description": "Role for standart user"
+    "name": "User2",
+    "description": "Role for standart user"
 }
 
 ###
@@ -53,8 +53,8 @@ POST {{protocol}}://{{host}}:{{port}}/api/organization_roles/ HTTP/1.1
 content-type: application/json
 
 {
-    "organization_role_name": "Admin ",
-    "organization_role_description": "Role for admin user"
+    "name": "Admin ",
+    "description": "Role for admin user"
 }
 ###
 GET {{protocol}}://{{host}}:{{port}}/api/organization_roles/ HTTP/1.1
@@ -63,8 +63,8 @@ PUT {{protocol}}://{{host}}:{{port}}/api/organization_roles/2 HTTP/1.1
 content-type: application/json
 
 {
-    "organization_role_name": "Admin",
-    "organization_role_description": "Role for admin user"
+    "name": "Admin",
+    "description": "Role for admin user"
 }
 
 ###
@@ -78,7 +78,7 @@ DELETE {{protocol}}://{{host}}:{{port}}/api/organization_roles/3 HTTP/1.1
 ###
 GET {{protocol}}://{{host}}:{{port}}/api/users/ HTTP/1.1
 ###
-GET {{protocol}}://{{host}}:{{port}}/api/users/?role_name=User HTTP/1.1
+GET {{protocol}}://{{host}}:{{port}}/api/users/?name=User HTTP/1.1
 ###
 GET {{protocol}}://{{host}}:{{port}}/api/users/2 HTTP/1.1
 ###
@@ -92,8 +92,8 @@ POST {{protocol}}://{{host}}:{{port}}/api/users/login HTTP/1.1
 content-type: application/json
 
   {
-    "user_username": "don",
-    "user_password": "don123"
+    "username": "don",
+    "password": "don123"
   }
 
 ###
@@ -101,12 +101,12 @@ POST {{protocol}}://{{host}}:{{port}}/api/users/ HTTP/1.1
 content-type: application/json
 
   {
-    "user_first_name": "Sam",
-    "user_second_name": "Lun",
-    "user_email": "sam2@mail.com",
-    "user_phone": "+38018811289",
-    "user_username": "sam2",
-    "user_password": "sam123",
+    "first_name": "Sam",
+    "second_name": "Lun",
+    "email": "sam2@mail.com",
+    "phone": "+38018811289",
+    "username": "sam2",
+    "password": "sam123",
     "role_id": 1
   }
 ###
@@ -116,12 +116,12 @@ PUT {{protocol}}://{{host}}:{{port}}/api/users/8 HTTP/1.1
 content-type: application/json
 
   {
-    "user_first_name": "Sam",
-    "user_second_name": "Fisher",
-    "user_email": "sam2@mail.com",
-    "user_phone": "+380132123126",
-    "user_username": "sam2",
-    "user_password": "sam1234",
+    "first_name": "Sam",
+    "second_name": "Fisher",
+    "email": "sam2@mail.com",
+    "phone": "+380132123126",
+    "username": "sam2",
+    "password": "sam1234",
     "role_id": 1
   }
 
@@ -154,10 +154,10 @@ POST {{protocol}}://{{host}}:{{port}}/api/organizations/?user_id=2 HTTP/1.1
 content-type: application/json
 
   {
-    "organization_name": "Admins",
-    "organization_description": "Admins org",
-    "organization_email": "admns@gmail.com",
-    "organization_phone": "+32342341337"
+    "name": "Admins",
+    "description": "Admins org",
+    "email": "admns@gmail.com",
+    "phone": "+32342341337"
   }
 
 ###
@@ -167,10 +167,10 @@ PUT {{protocol}}://{{host}}:{{port}}/api/organizations/2 HTTP/1.1
 content-type: application/json
 
   {
-    "organization_name": "Macdonalds2",
-    "organization_description": "The Fastfood restouran",
-    "organization_email": "mac2@gmail.com",
-    "organization_phone": "+38011231321"
+    "name": "Macdonalds2",
+    "description": "The Fastfood restouran",
+    "email": "mac2@gmail.com",
+    "phone": "+38011231321"
   }
 
 ###
@@ -211,13 +211,13 @@ GET {{protocol}}://{{host}}:{{port}}/api/files/download/1 HTTP/1.1
 # content-type: application/json
 
 #   {
-#     "file_name": "TheName",
+#     "name": "TheName",
 #     "file_path": "Bonder3",
 #     "user_id": 2,
 #     "organization_id": 1
 #   }
 ###
-POST {{protocol}}://{{host}}:{{port}}/api/files/upload?file_name=MyFile&user_id=1&organization_id=1 HTTP/1.1
+POST {{protocol}}://{{host}}:{{port}}/api/files/upload?name=MyFile&user_id=1&organization_id=1 HTTP/1.1
 Content-Type: multipart/form-data; boundary=WebAppBoundary
 
 --WebAppBoundary
@@ -235,8 +235,8 @@ PUT {{protocol}}://{{host}}:{{port}}/api/files/2 HTTP/1.1
 content-type: application/json
 
   {
-    "file_id": 2,
-    "file_name": "TheName22",
+    "id": 2,
+    "name": "TheName22",
     "file_path": "Bonder2",
     "user_id": 1,
     "organization_id": 1
@@ -267,8 +267,8 @@ POST {{protocol}}://{{host}}:{{port}}/api/reports/ HTTP/1.1
 content-type: application/json
 
   {
-    "report_name": "TheFirstReport3",
-    "report_data": "the moste important report ever",
+    "name": "TheFirstReport3",
+    "data_points": "the moste important report ever",
     "user_id": 2,
     "organization_id": 1
   }
@@ -278,8 +278,8 @@ PUT {{protocol}}://{{host}}:{{port}}/api/reports/1 HTTP/1.1
 content-type: application/json
 
   {
-    "report_name": "TheFirstReport",
-    "report_data": "The moste important report ever",
+    "name": "TheFirstReport",
+    "data_points": "The moste important report ever",
     "user_id": 1,
     "organization_id": 1
   }
@@ -301,25 +301,25 @@ GET {{protocol}}://{{host}}:{{port}}/api/analyzes/4 HTTP/1.1
 GET {{protocol}}://{{host}}:{{port}}/api/analyzes/download/2 HTTP/1.1
 
 ###
-POST  {{protocol}}://{{host}}:{{port}}/api/analyzes/?file_id=1 HTTP/1.1
+POST  {{protocol}}://{{host}}:{{port}}/api/analyzes/?id=1 HTTP/1.1
 content-type: application/json
 
   # {
-  #   "analyze_name": "TheFirstReport3",
-  #   "analyze_description": "the moste important report ever",
-  #   "analyze_support": 0.1,
-  #   "analyze_lift": 0.1,
-  #   "analyze_confidence": 0.1,
-  #   "analyze_rules_length": 1,
+  #   "name": "TheFirstReport3",
+  #   "description": "the moste important report ever",
+  #   "support": 0.1,
+  #   "lift": 0.1,
+  #   "confidence": 0.1,
+  #   "rules_length": 1,
   #   "report_id": 1
   # }
   {
-    "analyze_name": "TheFirstReport3",
-    "analyze_description": "the moste important report ever",
-    "analyze_support": 0.01,
-    "analyze_lift": 0.01,
-    "analyze_confidence": 0.01,
-    "analyze_rules_length": 3,
+    "name": "TheFirstReport3",
+    "description": "the moste important report ever",
+    "support": 0.01,
+    "lift": 0.01,
+    "confidence": 0.01,
+    "rules_length": 3,
     "report_id": 1
   }
 
@@ -328,12 +328,12 @@ PUT {{protocol}}://{{host}}:{{port}}/api/analyzes/1 HTTP/1.1
 content-type: application/json
 
   {
-    "analyze_name": "First analyze",
-    "analyze_description": "the moste important analyze ever",
-    "analyze_support": 0.1,
-    "analyze_lift": 0.1,
-    "analyze_confidence": 0.1,
-    "analyze_rules_length": 3,
+    "name": "First analyze",
+    "description": "the moste important analyze ever",
+    "support": 0.1,
+    "lift": 0.1,
+    "confidence": 0.1,
+    "rules_length": 3,
     "report_id": 1
   }
 
@@ -359,7 +359,7 @@ POST {{protocol}}://{{host}}:{{port}}/api/visualizations/ HTTP/1.1
 content-type: application/json
 
   {
-    "visualization_name": "first visualization",
+    "name": "first visualization",
     "report_id": 1
   }
 
@@ -368,8 +368,8 @@ PUT {{protocol}}://{{host}}:{{port}}/api/visualizations/1 HTTP/1.1
 content-type: application/json
 
   {
-    "visualization_name": "First visualization",
-    "visualization_image_path": "The most important visualization ever",
+    "name": "First visualization",
+    "image_file_path": "The most important visualization ever",
     "report_id": 1
   }
 
