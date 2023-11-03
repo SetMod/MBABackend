@@ -1,14 +1,16 @@
 from app import db
-from app.models.RolesModel import Roles
-from app.models.OrganizationRolesModel import OrganizationRoles
-# from app.models.UsersOrganizationsModel import users_organizations_table
-from app.models.UsersOrganizationsModel import UsersOrganizations
-from app.models.UsersModel import Users
-from app.models.OrganizationsModel import Organizations
-from app.models.FilesModel import Files
-from app.models.ReportsModel import Reports
-from app.models.AnalyzesModel import Analyzes
-from app.models.VisualizationsModel import Visualizations
+from app.models import *
+
+from app.services.RolesService import RolesService
+from app.services.OrganizationRolesService import OrganizationRolesService
+from app.services.UsersOrganizationsService import UsersOrganizationsService
+from app.services.VisualizationsService import VisualizationsService
+from app.services.FilesService import FilesService
+from app.services.UsersService import UsersService
+from app.services.OrganizationsService import OrganizationsService
+from app.services.AnalyzesService import AnalyzesService
+from app.services.ReportsService import ReportsService
+
 
 # Organizations.__table__.drop(db.engine)
 # UsersOrganizations.__table__.drop(db.engine)

@@ -2,12 +2,11 @@ from cgi import FieldStorage
 import os
 from marshmallow import ValidationError
 from app import UPLOAD_FOLDER, db
-from app.models.FilesModel import Files, FilesSchema
+from app.models import Files, FilesSchema
 from werkzeug.utils import secure_filename
 
 
-class FilesService():
-
+class FilesService:
     def __init__(self) -> None:
         self.files_schema = FilesSchema()
 
@@ -21,20 +20,19 @@ class FilesService():
                 return None
         except Exception as err:
             print(err)
-            return 'Failed to get files'
+            return "Failed to get files"
 
-    def get_file_by_id(self, file_id: int, dump: bool = True):
+    def get_file_by_id(self, id: int, dump: bool = True):
         try:
-            file = db.session.query(Files).where(
-                Files.file_id == file_id).first()
+            file = db.session.query(Files).where(Files.id == id).first()
 
             if isinstance(file, Files):
                 return self.files_schema.dump(file) if dump else file
             else:
-                return 'File not found'
+                return "File not found"
         except Exception as err:
             print(err)
-            return 'Failed to get file'
+            return "Failed to get file"
 
     def create_file(self, file: Files, csv_file: FieldStorage, dump: bool = True):
         try:
@@ -42,7 +40,8 @@ class FilesService():
             db.session.commit()
 
             file_path = os.path.join(
-                UPLOAD_FOLDER, secure_filename(f'file_{file.file_id}.csv'))
+                UPLOAD_FOLDER, secure_filename(f"file_{file.id}.csv")
+            )
             file.file_path = file_path
             csv_file.save(file.file_path)
 
@@ -50,25 +49,25 @@ class FilesService():
             return self.files_schema.dump(file) if dump else file
         except Exception as err:
             print(err)
-            return 'Failed to create file'
+            return "Failed to create file"
 
-    def update_file(self, file_id: int, updated_file: Files, dump: bool = True):
-        file = self.get_file_by_id(file_id=file_id, dump=False)
+    def update_file(self, id: int, updated_file: Files, dump: bool = True):
+        file = self.get_file_by_id(id=id, dump=False)
 
         if not isinstance(file, Files):
             return file
 
         try:
-            file.file_name = updated_file.file_name
+            file.name = updated_file.name
             # file.file_path = updated_file.file_path
             db.session.commit()
             return self.files_schema.dump(file) if dump else file
         except Exception as err:
             print(err)
-            return 'Failed to update file'
+            return "Failed to update file"
 
-    def delete_file(self, file_id: int, dump: bool = True):
-        file = self.get_file_by_id(file_id=file_id, dump=False)
+    def delete_file(self, id: int, dump: bool = True):
+        file = self.get_file_by_id(id=id, dump=False)
 
         if not isinstance(file, Files):
             return file
@@ -81,17 +80,21 @@ class FilesService():
             return self.files_schema.dump(file) if dump else file
         except Exception as err:
             print(err)
-            return 'Failed to delete file'
+            return "Failed to delete file"
 
     def map_file(self, file_dict: dict):
         try:
             file = self.files_schema.load(file_dict)
-            file_name = file_dict['file_name']
-            file_path = file_dict['file_path']
-            user_id = file_dict['user_id']
-            organization_id = file_dict['organization_id']
-            file = Files(file_name=file_name, file_path=file_path,
-                         user_id=user_id, organization_id=organization_id)
+            name = file_dict["name"]
+            file_path = file_dict["file_path"]
+            user_id = file_dict["user_id"]
+            organization_id = file_dict["organization_id"]
+            file = Files(
+                name=name,
+                file_path=file_path,
+                user_id=user_id,
+                organization_id=organization_id,
+            )
             return file
         except ValidationError as err:
             return err.messages
