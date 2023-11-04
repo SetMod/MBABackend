@@ -1,4 +1,4 @@
-# from app.services.GenericService import GenericService
+from app.services.GenericService import GenericService
 # from app.services.RolesService import RolesService
 # from app.services.OrganizationRolesService import OrganizationRolesService
 # from app.services.UsersOrganizationsService import UsersOrganizationsService

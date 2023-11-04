@@ -57,6 +57,22 @@ class FilesService(GenericService):
             print(err)
             return "Failed to create file"
 
+    def delete_file(self, id: int, dump: bool = True):
+        file = self.get_file_by_id(id=id, dump=False)
+
+        if not isinstance(file, Files):
+            return file
+
+        try:
+            if os.path.exists(file.file_path):
+                os.remove(file.file_path)
+            db.session.delete(file)
+            db.session.commit()
+            return self.files_schema.dump(file) if dump else file
+        except Exception as err:
+            print(err)
+            return "Failed to delete file"
+
 
 class OrganizationRolesService(GenericService):
     def __init__(self) -> None:
@@ -96,6 +112,100 @@ class OrganizationsService(GenericService):
         self.users_schema = UsersSchema()
         self.files_schema = FilesSchema()
         self.reports_schema = ReportsSchema()
+
+    def get_user_organizations(self, user_id: int, dump: bool = True):
+        user = self.users_service.get_by_id(user_id, dump=False)
+
+        if not isinstance(user, Users):
+            return user
+
+        organizations_and_roles = (
+            db.session.query(Organizations, OrganizationRoles)
+            .select_from(Organizations)
+            .join(UsersOrganizations)
+            .filter(
+                Organizations.id == UsersOrganizations.organization_id,
+                UsersOrganizations.user_id == user_id,
+                OrganizationRoles.id == UsersOrganizations.organization_role_id,
+            )
+            .all()
+        )
+
+        def organizations_dump(
+            organization: Organizations, organization_role: OrganizationRoles
+        ):
+            org = self.schema.dump(organization)
+            org_role = self.organization_roles_schema.dump(organization_role)
+            return {**org, **org_role}
+
+        return (
+            [
+                organizations_dump(org, org_role)
+                for org, org_role in organizations_and_roles
+            ]
+            if dump
+            else organizations_and_roles
+        )
+
+    def get_organization_users(self, id: int, dump: bool = True):
+        try:
+            organization = self.get_organization_by_id(id, dump=False)
+
+            if isinstance(organization, str):
+                return organization
+
+            users_and_roles = (
+                db.session.query(Users, OrganizationRoles)
+                .select_from(Users)
+                .join(UsersOrganizations)
+                .filter(
+                    Users.id == UsersOrganizations.user_id,
+                    UsersOrganizations.organization_id == id,
+                    OrganizationRoles.id == UsersOrganizations.organization_role_id,
+                )
+                .all()
+            )
+
+            def users_dump(user: Users, organization_role: OrganizationRoles):
+                usr = self.users_schema.dump(user)
+                org_role = self.organization_roles_schema.dump(organization_role)
+                return {**usr, **org_role}
+
+            if len(users_and_roles) > 0:
+                return (
+                    [users_dump(usr, org_role) for usr, org_role in users_and_roles]
+                    if dump
+                    else users_and_roles
+                )
+            else:
+                return "Users not found"
+        except Exception as err:
+            print(err)
+            return "Failed to get organization users"
+
+    def get_organization_reports(self, id: int, dump: bool = True):
+        organization = self.get_by_id(id, dump=False)
+
+        if isinstance(organization, str):
+            return organization
+
+        return (
+            self.reports_schema.dump(organization.organization_reports, many=True)
+            if dump
+            else organization.organization_reports
+        )
+
+    def get_organization_files(self, id: int, dump: bool = True):
+        organization = self.get_by_id(id, dump=False)
+
+        if not isinstance(organization, Organizations):
+            return organization
+
+        return (
+            self.files_schema.dump(organization.organization_files, many=True)
+            if dump
+            else organization.organization_files
+        )
 
 
 class VisualizationsService(GenericService):
