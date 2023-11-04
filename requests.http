@@ -10,9 +10,11 @@
 GET {{protocol}}://{{host}}:{{port}}/api/roles/ HTTP/1.1
 
 ###
-GET {{protocol}}://{{host}}:{{port}}/api/roles/3 HTTP/1.1
+GET {{protocol}}://{{host}}:{{port}}/api/roles/1 HTTP/1.1
 ###
 GET {{protocol}}://{{host}}:{{port}}/api/roles/User HTTP/1.1
+###
+GET {{protocol}}://{{host}}:{{port}}/api/roles/Admin2 HTTP/1.1
 
 ###
 POST {{protocol}}://{{host}}:{{port}}/api/roles/ HTTP/1.1
@@ -26,7 +28,7 @@ content-type: application/json
 ###
 GET {{protocol}}://{{host}}:{{port}}/api/roles/4 HTTP/1.1
 ###
-PUT {{protocol}}://{{host}}:{{port}}/api/roles/4 HTTP/1.1
+PUT {{protocol}}://{{host}}:{{port}}/api/roles/1 HTTP/1.1
 content-type: application/json
 
 {
