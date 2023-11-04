@@ -9,7 +9,7 @@ users_organizations_service = UsersOrganizationsService()
 
 @organizations_api.get("/")
 def get_all_organizations():
-    organizations = organizations_service.get_all_organizations()
+    organizations = organizations_service.get_all()
 
     if isinstance(organizations, str):
         return organizations, 404
@@ -19,7 +19,7 @@ def get_all_organizations():
 
 @organizations_api.get("/<int:id>")
 def get_organization_by_id(id: int):
-    organization = organizations_service.get_organization_by_id(id)
+    organization = organizations_service.get_by_id(id)
 
     if isinstance(organization, str):
         return organization, 404
@@ -69,9 +69,7 @@ def get_organization_reports(id: int):
 
 @organizations_api.post("/users")
 def add_user_to_organization():
-    user_organization = users_organizations_service.map_users_organizations(
-        request.json
-    )
+    user_organization = users_organizations_service.map_model(request.json)
 
     if not isinstance(user_organization, UsersOrganizations):
         return jsonify(user_organization), 400
@@ -93,7 +91,7 @@ def create_organization():
     if user_id is None:
         return "User id not specified", 400
 
-    organization = organizations_service.map_organization(request.json)
+    organization = organizations_service.map_model(request.json)
     if not isinstance(organization, Organizations):
         return jsonify(organization), 400
 
@@ -109,7 +107,7 @@ def create_organization():
 
 @organizations_api.put("/<int:id>")
 def update_organization(id: int):
-    organization = organizations_service.map_organization(request.json)
+    organization = organizations_service.map_model(request.json)
     if not isinstance(organization, Organizations):
         return jsonify(organization), 400
 
@@ -135,7 +133,7 @@ def remove_user_from_organization(user_id: int, id: int):
 
 @organizations_api.delete("/<int:id>")
 def delete_organization(id: int):
-    deleted_organization = organizations_service.delete_organization(id)
+    deleted_organization = organizations_service.delete(id)
 
     if deleted_organization is None:
         return "Failed to delete an organization", 400

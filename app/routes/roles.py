@@ -8,7 +8,7 @@ roles_service = RolesService()
 
 @roles_api.get("/")
 def get_all_roles():
-    roles = roles_service.get_all_roles()
+    roles = roles_service.get_all()
 
     if isinstance(roles, str):
         return roles, 404
@@ -18,7 +18,7 @@ def get_all_roles():
 
 @roles_api.get("/<int:id>")
 def get_role_by_id(id: int):
-    role = roles_service.get_role_by_id(id)
+    role = roles_service.get_by_id(id)
 
     if isinstance(role, str):
         return role, 404
@@ -28,7 +28,7 @@ def get_role_by_id(id: int):
 
 @roles_api.get("/<string:name>")
 def get_role_by_name(name: str):
-    role = roles_service.get_role_by_name(name)
+    role = roles_service.get_by_name(name)
 
     if isinstance(role, str):
         return role, 404
@@ -38,11 +38,11 @@ def get_role_by_name(name: str):
 
 @roles_api.post("/")
 def create_role():
-    role = roles_service.map_role(request.json)
+    role = roles_service.map_model(request.json)
     if not isinstance(role, Roles):
         return jsonify(role), 400
 
-    new_role = roles_service.create_role(role)
+    new_role = roles_service.create(role)
 
     if isinstance(new_role, str):
         return new_role, 400
@@ -52,11 +52,11 @@ def create_role():
 
 @roles_api.put("/<int:id>")
 def update_role(id: int):
-    role = roles_service.map_role(request.json)
+    role = roles_service.map_model(request.json)
     if not isinstance(role, Roles):
         return jsonify(role), 400
 
-    updated_role = roles_service.update_role(id, role)
+    updated_role = roles_service.update(id, role)
 
     if isinstance(updated_role, str):
         return updated_role, 400
@@ -66,7 +66,7 @@ def update_role(id: int):
 
 @roles_api.delete("/<int:id>")
 def delete_role(id: int):
-    deleted_role = roles_service.delete_role(id)
+    deleted_role = roles_service.delete(id)
 
     if isinstance(deleted_role, str):
         return deleted_role, 400

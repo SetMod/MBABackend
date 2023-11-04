@@ -1,9 +1,8 @@
-import os
 from flask import Blueprint, jsonify, request, send_from_directory
-from app import ALLOWED_EXTENSIONS, UPLOAD_FOLDER
-import app
+from app.config import ALLOWED_EXTENSIONS, UPLOAD_FOLDER
 from app.models import Files
 from app.services import FilesService
+import os
 
 files_api = Blueprint("files", __name__)
 files_service = FilesService()
@@ -11,7 +10,7 @@ files_service = FilesService()
 
 @files_api.get("/")
 def get_all_files():
-    files = files_service.get_all_files()
+    files = files_service.get_all()
 
     if isinstance(files, str):
         return files, 404
@@ -21,7 +20,7 @@ def get_all_files():
 
 @files_api.get("/<int:id>")
 def get_file_by_id(id: int):
-    file = files_service.get_file_by_id(id)
+    file = files_service.get_by_id(id)
 
     if isinstance(file, str):
         return file, 404
@@ -31,7 +30,7 @@ def get_file_by_id(id: int):
 
 @files_api.get("/download/<int:id>")
 def download_file_by_id(id: int):
-    file = files_service.get_file_by_id(id)
+    file = files_service.get_by_id(id)
 
     if isinstance(file, str):
         return file, 404
@@ -80,12 +79,12 @@ def create_file():
 
 @files_api.put("/<int:id>")
 def update_file(id: int):
-    file = files_service.map_file(request.json)
+    file = files_service.map_model(request.json)
 
     if not isinstance(file, Files):
         return jsonify(file), 400
 
-    updated_file = files_service.update_file(id, file)
+    updated_file = files_service.update(id, file)
 
     if isinstance(updated_file, str):
         return updated_file, 400
