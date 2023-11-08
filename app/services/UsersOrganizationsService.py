@@ -1,63 +1,36 @@
-from marshmallow import ValidationError
-from app.models import OrganizationRolesSchema
-from app.models import UsersOrganizations, UsersOrganizationsSchema
-from app.services import OrganizationRolesService
-from sqlalchemy.engine.row import Row
-from app import db
+from app.models import (
+    UsersOrganizationsSchema,
+    OrganizationRolesSchema,
+    UsersOrganizations,
+)
+from app.services import GenericService, OrganizationRolesService
+from app.init import db
 
 
-class UsersOrganizationsService:
+class UsersOrganizationsService(GenericService):
     def __init__(self) -> None:
-        self.users_organizations_schema = UsersOrganizationsSchema()
+        super().__init__(
+            schema=UsersOrganizationsSchema(), model_class=UsersOrganizations
+        )
         self.organization_roles_schema = OrganizationRolesSchema()
         self.organization_roles_service = OrganizationRolesService()
-        # self.users_schema = UsersSchema()
-        # self.organizations_schema = OrganizationsSchema()
-
-    def get_all_users_organizations(self, dump: bool = True):
-        try:
-            # users_organizations = db.session.query(users_organizations_table).all()
-            users_organizations = db.session.query(UsersOrganizations).all()
-
-            if len(users_organizations) > 0:
-                return (
-                    self.users_organizations_schema.dump(users_organizations, many=True)
-                    if dump
-                    else users_organizations
-                )
-            else:
-                return "Users organizations not found"
-        except Exception as err:
-            print(err)
-            return "Failed to get users organizations"
 
     def get_user_organization(
         self, user_id: int, organization_id: bool, dump: bool = True
     ):
-        try:
-            # user_organization = db.session.query(users_organizations_table).where(
-            #     users_organizations_table.c.user_id == user_id, users_organizations_table.c.organization_id == organization_id).first()
-            user_organization = (
-                db.session.query(UsersOrganizations)
-                .where(
-                    UsersOrganizations.user_id == user_id,
-                    UsersOrganizations.organization_id == organization_id,
-                )
-                .first()
+        user_organization = (
+            db.session.query(UsersOrganizations)
+            .where(
+                UsersOrganizations.user_id == user_id,
+                UsersOrganizations.organization_id == organization_id,
             )
+            .first()
+        )
 
-            # if isinstance(user_organization, Row):
-            if isinstance(user_organization, UsersOrganizations):
-                return (
-                    self.users_organizations_schema.dump(user_organization)
-                    if dump
-                    else user_organization
-                )
-            else:
-                return "User organization not found"
-        except Exception as err:
-            print(err)
-            return "Failed to get user organization"
+        if not user_organization:
+            return None
+
+        return self.schema.dump(user_organization) if dump else user_organization
 
     def get_user_organization_role(
         self, user_id: int, organization_id: bool, dump: bool = True
@@ -66,43 +39,11 @@ class UsersOrganizationsService:
             user_id, organization_id, dump=False
         )
 
-        if isinstance(user_organization, str):
-            return user_organization
+        if not user_organization:
+            return None
 
         organization_role = self.organization_roles_service.get_organization_role_by_id(
-            user_organization.organization_role_id, dump=False
+            user_organization.organization_role_id, dump=dump
         )
 
-        if isinstance(organization_role, str):
-            return organization_role
-        else:
-            return (
-                self.organization_roles_schema.dump(organization_role)
-                if dump
-                else organization_role
-            )
-
-    # def add_user_to_organizations(self, user_organizations: UsersOrganizations, dump: bool = True):
-    #     try:
-    #         query = users_organizations_table.insert().values(user_id=user_organizations.user_id,
-    #                                                           organizations_id=user_organizations.organization_id, organization_role_id=user_organizations.organization_role_id)
-    #         db.engine.execute(query)
-    #         db.session.commit()
-    #         return self.users_organizations_schema.dump(user_organizations, many=True) if dump else user_organizations
-    #     except Exception:
-    #         return None
-
-    def map_users_organizations(self, users_organizations_dict: dict):
-        try:
-            users_organizations = self.users_organizations_schema.load(
-                users_organizations_dict
-            )
-            user_id = users_organizations_dict["user_id"]
-            organization_id = users_organizations_dict["organization_id"]
-            organization_role_id = users_organizations_dict["organization_role_id"]
-            users_organizations = UsersOrganizations(
-                user_id, organization_id, organization_role_id
-            )
-            return users_organizations
-        except ValidationError as err:
-            return err.messages
+        return organization_role
