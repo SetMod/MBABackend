@@ -1,13 +1,24 @@
 from dotenv import load_dotenv
+import logging
+import sys
 import os
 
-APP_DOTENV_PATH = os.getenv("APP_DOTENV_PATH", ".env.dev")
+logger = logging.getLogger("app")
+logger.setLevel(logging.INFO)
 
+base_format = logging.Formatter(
+    fmt="[%(asctime)s] [%(levelname)s] [%(filename)s:%(lineno)d]: %(message)s"
+)
+
+stream_handler = logging.StreamHandler(stream=sys.stdout)
+stream_handler.setFormatter(base_format)
+
+logger.addHandler(stream_handler)
+
+APP_DOTENV_PATH = os.getenv("APP_DOTENV_PATH", ".env.dev")
 load_dotenv(APP_DOTENV_PATH)
 
-print(os.getenv("FLASK_APP"))
-print(os.getenv("FLASK_ENV"))
-
+APP_SECRET = "JKLjk12pA@#12kjo0piu9012x"
 APP_DATABASE_PATH = os.getenv("APP_DATABASE_PATH", "../db/database.db")
 
 # UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')
