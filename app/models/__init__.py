@@ -11,6 +11,7 @@
 
 # Base.metadata.create_all(engine)
 
+from app.models.GenericModel import GenericModel
 from app.models.Roles import Roles, RolesSchema
 from app.models.OrganizationRoles import OrganizationRoles, OrganizationRolesSchema
 from app.models.UsersOrganizations import UsersOrganizations, UsersOrganizationsSchema
