@@ -17,7 +17,7 @@ def get_all_users_organizations():
             user_id, organization_id
         )
     else:
-        users_organizations = users_organizations_service.get_all_users_organizations()
+        users_organizations = users_organizations_service.get_all()
 
     if isinstance(users_organizations, str):
         return users_organizations, 404
@@ -42,22 +42,3 @@ def get_user_organization_role():
         return users_organizations, 404
     else:
         return jsonify(users_organizations), 200
-
-
-@users_organizations_api.post("/")
-def add_user_to_organization():
-    user_organization = users_organizations_service.map_users_organizations(
-        request.json
-    )
-
-    if not isinstance(user_organization, UsersOrganizations):
-        return jsonify(user_organization), 400
-
-    added_user_organization = users_organizations_service.add_user_to_organizations(
-        user_organization
-    )
-
-    if isinstance(added_user_organization, str):
-        return added_user_organization, 400
-    else:
-        return jsonify(added_user_organization), 201

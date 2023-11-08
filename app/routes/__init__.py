@@ -7,13 +7,15 @@ from app.routes.analyzes import analyzes_api
 from app.routes.files import files_api
 from app.routes.reports import reports_api
 from app.routes.visualizations import visualizations_api
-from app import app
+from app.init import app
 
 app.register_blueprint(roles_api, url_prefix="/api/v1/roles")
 app.register_blueprint(organization_roles_api, url_prefix="/api/v1/organization_roles")
 app.register_blueprint(organizations_api, url_prefix="/api/v1/organizations")
 app.register_blueprint(users_api, url_prefix="/api/v1/users")
-app.register_blueprint(users_organizations_api, url_prefix="/api/v1/users_organizations")
+app.register_blueprint(
+    users_organizations_api, url_prefix="/api/v1/users_organizations"
+)
 app.register_blueprint(files_api, url_prefix="/api/v1/files")
 app.register_blueprint(reports_api, url_prefix="/api/v1/reports")
 app.register_blueprint(analyzes_api, url_prefix="/api/v1/analyzes")

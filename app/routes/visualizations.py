@@ -11,7 +11,7 @@ visualizations_service = VisualizationsService()
 
 @visualizations_api.get("/")
 def get_all_visualizations():
-    visualizations = visualizations_service.get_all_visualizations()
+    visualizations = visualizations_service.get_all()
 
     if isinstance(visualizations, str):
         return visualizations, 404
@@ -21,7 +21,7 @@ def get_all_visualizations():
 
 @visualizations_api.get("/<int:id>")
 def get_visualization_by_id(id: int):
-    visualization = visualizations_service.get_visualization_by_id(id)
+    visualization = visualizations_service.get_by_id(id)
 
     if isinstance(visualization, str):
         return visualization, 404
@@ -31,7 +31,7 @@ def get_visualization_by_id(id: int):
 
 @visualizations_api.get("/data/<int:id>")
 def get_visualization_data(id: int):
-    visualization = visualizations_service.get_visualization_by_id(id)
+    visualization = visualizations_service.get_by_id(id)
 
     if isinstance(visualization, str):
         return visualization, 404
@@ -46,7 +46,7 @@ def get_visualization_data(id: int):
 
 @visualizations_api.get("/download/<int:id>")
 def download_analyze_by_id(id: int):
-    visualization = visualizations_service.get_visualization_by_id(id)
+    visualization = visualizations_service.get_by_id(id)
 
     if isinstance(visualization, str):
         return visualization, 404
@@ -84,7 +84,7 @@ def update_visualization(id: int):
     visualization = Visualizations(
         name=name, image_file_path=image_file_path, report_id=report_id
     )
-    updated_visualization = visualizations_service.update_visualization(
+    updated_visualization = visualizations_service.update(
         id, visualization
     )
 
