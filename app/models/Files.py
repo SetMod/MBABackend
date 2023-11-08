@@ -1,15 +1,13 @@
-from datetime import datetime
-from app import db, ma
+from app.models import GenericModel
+from app.init import db, ma
 
 
-class Files(db.Model):
+class Files(db.Model, GenericModel):
     __tablename__ = "files"
 
     id = db.Column("id", db.Integer, primary_key=True)
 
     name = db.Column("name", db.String(100), nullable=False)
-
-    create_date = db.Column("create_date", db.DateTime, default=datetime.utcnow)
 
     file_path = db.Column("file_path", db.String(255), unique=True, nullable=False)
 

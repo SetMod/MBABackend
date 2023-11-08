@@ -1,11 +1,9 @@
-from datetime import datetime
-from app import db, ma
+from app.models import GenericModel
+from app.init import db, ma
 
 
-class Analyzes(db.Model):
+class Analyzes(db.Model, GenericModel):
     __tablename__ = "analyzes"
-
-    id = db.Column("id", db.Integer, primary_key=True)
 
     name = db.Column("name", db.String(50), nullable=False)
 
@@ -20,8 +18,6 @@ class Analyzes(db.Model):
     rules_length = db.Column("rules_length", db.Integer, nullable=False)
 
     file_path = db.Column("file_path", db.String(255), nullable=False)
-
-    create_date = db.Column("create_date", db.DateTime, default=datetime.utcnow)
 
     report_id = db.Column(
         "report_id", db.Integer, db.ForeignKey("reports.id"), nullable=False

@@ -1,11 +1,9 @@
-from datetime import datetime
-from app import db, ma
+from app.models import GenericModel
+from app.init import db, ma
 
 
-class Users(db.Model):
+class Users(db.Model, GenericModel):
     __tablename__ = "users"
-
-    id = db.Column("id", db.Integer, primary_key=True)
 
     first_name = db.Column("first_name", db.String(100), nullable=False)
 
@@ -18,8 +16,6 @@ class Users(db.Model):
     username = db.Column("username", db.String(50), unique=True, nullable=False)
 
     password = db.Column("password", db.String(50), nullable=False)
-
-    create_date = db.Column("create_date", db.DateTime, default=datetime.utcnow)
 
     role_id = db.Column(
         "role_id", db.Integer, db.ForeignKey("roles.id"), nullable=False

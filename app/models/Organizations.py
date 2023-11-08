@@ -1,11 +1,9 @@
-from datetime import datetime
-from app import db, ma
+from app.models import GenericModel
+from app.init import db, ma
 
 
-class Organizations(db.Model):
+class Organizations(db.Model, GenericModel):
     __tablename__ = "organizations"
-
-    id = db.Column("id", db.Integer, primary_key=True)
 
     name = db.Column("name", db.String(200), unique=True, nullable=False)
 
@@ -14,8 +12,6 @@ class Organizations(db.Model):
     email = db.Column("email", db.String(255), unique=True, nullable=False)
 
     phone = db.Column("phone", db.String(18), unique=True)
-
-    create_date = db.Column("create_date", db.DateTime, default=datetime.utcnow)
 
     members = db.relationship(
         "UsersOrganizations",

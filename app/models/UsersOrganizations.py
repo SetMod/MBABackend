@@ -1,4 +1,4 @@
-from app import db, ma
+from app.init import db, ma
 
 
 class UsersOrganizations(db.Model):

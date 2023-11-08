@@ -1,10 +1,9 @@
-from app import db, ma
+from app.models import GenericModel
+from app.init import db, ma
 
 
-class Roles(db.Model):
+class Roles(db.Model, GenericModel):
     __tablename__ = "roles"
-
-    id = db.Column("id", db.Integer, primary_key=True)
 
     name = db.Column("name", db.String(50), unique=True, nullable=False)
 

@@ -1,17 +1,13 @@
-from datetime import datetime
-from app import db, ma
+from app.models import GenericModel
+from app.init import db, ma
 
 
-class Reports(db.Model):
+class Reports(db.Model, GenericModel):
     __tablename__ = "reports"
-
-    id = db.Column("id", db.Integer, primary_key=True)
 
     name = db.Column("name", db.String(100), nullable=False)
 
     data_points = db.Column("data_points", db.Text, nullable=False)
-
-    create_date = db.Column("create_date", db.DateTime, default=datetime.utcnow)
 
     user_id = db.Column("user_id", db.Integer, db.ForeignKey("users.id"))
 

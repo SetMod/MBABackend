@@ -1,10 +1,9 @@
-from app import db, ma
+from app.models import GenericModel
+from app.init import db, ma
 
 
-class OrganizationRoles(db.Model):
+class OrganizationRoles(db.Model, GenericModel):
     __tablename__ = "organization_roles"
-
-    id = db.Column("id", db.Integer, primary_key=True)
 
     name = db.Column("name", db.String(50), unique=True, nullable=False)
 
