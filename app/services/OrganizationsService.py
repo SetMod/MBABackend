@@ -94,7 +94,7 @@ class OrganizationsService(GenericService):
     def get_organization_member(
         self, organization_id: int, user_id: int, must_exist: bool = True
     ) -> Table:
-        logger.info(f"Getting {self.__class__._name()} member")
+        logger.info(f"Getting {self.model_class._name()} member")
 
         organization: Organizations = self.get_by_id(organization_id)
         organization_member = db.session.execute(
@@ -105,22 +105,22 @@ class OrganizationsService(GenericService):
         ).scalar_one_or_none()
 
         if must_exist and not organization_member:
-            msg = f"{self.__class__._name(lower=False)} member with id='{user_id}' not found"
+            msg = f"{self.model_class._name(lower=False)} member with id='{user_id}' not found"
             logger.warning(msg)
             raise CustomNotFound(msg)
         elif not must_exist and organization_member:
-            msg = f"{self.__class__._name(lower=False)} member with id='{user_id}' already exists"
+            msg = f"{self.model_class._name(lower=False)} member with id='{user_id}' already exists"
             logger.warning(msg)
             raise CustomBadRequest(msg)
 
         logger.info(
-            f"Found {self.__class__._name()} organization member: {organization_member}"
+            f"Found {self.model_class._name()} organization member: {organization_member}"
         )
 
         return organization_member
 
     def get_member_by_id(self, id: int, user_id: int) -> Users:
-        logger.info(f"Getting {self.__class__._name()} member where id='{id}'")
+        logger.info(f"Getting {self.model_class._name()} member where id='{id}'")
 
         organization_member = self.get_organization_member(id, user_id)
         user: Users = self.users_service.get_by_id(organization_member.c.user_id)
