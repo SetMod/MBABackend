@@ -1,22 +1,32 @@
-from app.routes.roles import roles_api
-from app.routes.organization_roles import organization_roles_api
-from app.routes.users_organizations import users_organizations_api
-from app.routes.users import users_api
-from app.routes.organizations import organizations_api
-from app.routes.analyzes import analyzes_api
-from app.routes.files import files_api
-from app.routes.reports import reports_api
-from app.routes.visualizations import visualizations_api
-from app.init import app
+from flask import Flask
+from app.routes.RolesRoute import RolesRoute
+from app.routes.OrganizationRolesRoute import OrganizationRolesRoute
+from app.routes.UsersRoute import UsersRoute
+from app.routes.OrganizationsRoute import OrganizationsRoute
+from app.routes.ReportsRoute import ReportsRoute
+from app.routes.DatasourcesRoute import DatasourcesRoute
+from app.routes.VisualizationsRoute import VisualizationsRoute
 
-app.register_blueprint(roles_api, url_prefix="/api/v1/roles")
-app.register_blueprint(organization_roles_api, url_prefix="/api/v1/organization_roles")
-app.register_blueprint(organizations_api, url_prefix="/api/v1/organizations")
-app.register_blueprint(users_api, url_prefix="/api/v1/users")
-app.register_blueprint(
-    users_organizations_api, url_prefix="/api/v1/users_organizations"
-)
-app.register_blueprint(files_api, url_prefix="/api/v1/files")
-app.register_blueprint(reports_api, url_prefix="/api/v1/reports")
-app.register_blueprint(analyzes_api, url_prefix="/api/v1/analyzes")
-app.register_blueprint(visualizations_api, url_prefix="/api/v1/visualizations")
+
+def register_blueprints(app: Flask):
+    roles_route = RolesRoute()
+    organization_roles_route = OrganizationRolesRoute()
+    users_route = UsersRoute()
+    organizations_route = OrganizationsRoute()
+    reports_route = ReportsRoute()
+    datasources_route = DatasourcesRoute()
+    visualizations_route = VisualizationsRoute()
+
+    app.register_blueprint(roles_route.bp, url_prefix="/api/v1/roles")
+    app.register_blueprint(organizations_route.bp, url_prefix="/api/v1/organizations")
+    # # app.register_blueprint(organizations_members_api, url_prefix="/api/v1/organizations/<int:id>/members",)
+    app.register_blueprint(
+        organization_roles_route.bp,
+        url_prefix="/api/v1/organizations/<int:org_id>/roles",
+    )
+    app.register_blueprint(users_route.bp, url_prefix="/api/v1/users")
+    app.register_blueprint(reports_route.bp, url_prefix="/api/v1/reports")
+    app.register_blueprint(datasources_route.bp, url_prefix="/api/v1/datasource")
+    # # app.register_blueprint(files_api, url_prefix="/api/v1/files")
+    app.register_blueprint(visualizations_route.bp, url_prefix="/api/v1/visualizations")
+    # app.register_blueprint(analyzes_api, url_prefix="/api/v1/analyzes")
