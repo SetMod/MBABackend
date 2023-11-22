@@ -10,7 +10,9 @@ version: "3.8"
 
 services:
   backend:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
     image: backend:v1
     container_name: backend
     environment:
