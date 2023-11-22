@@ -1,105 +1,66 @@
 @protocol=http
 @host=localhost
-@port=8000
+@port=5000
+@api_version=v1
+@base_url={{protocol}}://{{host}}:{{port}}/api/{{api_version}}
 
 
+
+#======================================Get all======================================
+
+###
+GET {{base_url}}/roles/ HTTP/1.1
+###
+GET {{base_url}}/users/ HTTP/1.1
+###
+GET {{base_url}}/organizations/ HTTP/1.1
+###
+GET {{base_url}}/analyzes/ HTTP/1.1
+###
+GET {{base_url}}/files/ HTTP/1.1
+###
+GET {{base_url}}/reports/ HTTP/1.1
+###
+GET {{base_url}}/visualizations/ HTTP/1.1
 
 
 //======================================Roles api======================================
-###
-GET {{protocol}}://{{host}}:{{port}}/api/roles/ HTTP/1.1
 
 ###
-GET {{protocol}}://{{host}}:{{port}}/api/roles/1 HTTP/1.1
-###
-GET {{protocol}}://{{host}}:{{port}}/api/roles/User HTTP/1.1
-###
-GET {{protocol}}://{{host}}:{{port}}/api/roles/Admin2 HTTP/1.1
-
-###
-POST {{protocol}}://{{host}}:{{port}}/api/roles/ HTTP/1.1
+POST {{base_url}}/roles/ HTTP/1.1
 content-type: application/json
 
 {
-    "name": "Admin2",
+    "name": "User",
     "description": "Role for admin user"
 }
 
 ###
-GET {{protocol}}://{{host}}:{{port}}/api/roles/4 HTTP/1.1
+GET {{base_url}}/roles/ HTTP/1.1
+
+### Get by name
+GET {{base_url}}/roles?name=Admin HTTP/1.1
+
+### Get by ID
+GET {{base_url}}/roles/1 HTTP/1.1
+
 ###
-PUT {{protocol}}://{{host}}:{{port}}/api/roles/1 HTTP/1.1
+PUT {{base_url}}/roles/1 HTTP/1.1
 content-type: application/json
 
 {
-    "name": "User2",
+    "name": "User",
     "description": "Role for standart user"
 }
 
 ###
-DELETE {{protocol}}://{{host}}:{{port}}/api/roles/4 HTTP/1.1
-
-
-
-
-
-//======================================organizationRoles api======================================
-###
-GET {{protocol}}://{{host}}:{{port}}/api/organization_roles/ HTTP/1.1
-
-###
-GET {{protocol}}://{{host}}:{{port}}/api/organization_roles/1 HTTP/1.1
-
-###
-POST {{protocol}}://{{host}}:{{port}}/api/organization_roles/ HTTP/1.1
-content-type: application/json
-
-{
-    "name": "Admin ",
-    "description": "Role for admin user"
-}
-###
-GET {{protocol}}://{{host}}:{{port}}/api/organization_roles/ HTTP/1.1
-###
-PUT {{protocol}}://{{host}}:{{port}}/api/organization_roles/2 HTTP/1.1
-content-type: application/json
-
-{
-    "name": "Admin",
-    "description": "Role for admin user"
-}
-
-###
-DELETE {{protocol}}://{{host}}:{{port}}/api/organization_roles/3 HTTP/1.1
-
-
+DELETE {{base_url}}/roles/34 HTTP/1.1
 
 
 
 //======================================Users api======================================
 ###
-GET {{protocol}}://{{host}}:{{port}}/api/users/ HTTP/1.1
-###
-GET {{protocol}}://{{host}}:{{port}}/api/users/?name=User HTTP/1.1
-###
-GET {{protocol}}://{{host}}:{{port}}/api/users/2 HTTP/1.1
-###
-GET {{protocol}}://{{host}}:{{port}}/api/users/2/organizations HTTP/1.1
-###
-GET {{protocol}}://{{host}}:{{port}}/api/users/2/files HTTP/1.1
-###
-GET {{protocol}}://{{host}}:{{port}}/api/users/2/reports HTTP/1.1
-###
-POST {{protocol}}://{{host}}:{{port}}/api/users/login HTTP/1.1
-content-type: application/json
-
-  {
-    "username": "don",
-    "password": "don123"
-  }
-
-###
-POST {{protocol}}://{{host}}:{{port}}/api/users/ HTTP/1.1
+POST {{base_url}}/users/ HTTP/1.1
 content-type: application/json
 
   {
@@ -111,10 +72,34 @@ content-type: application/json
     "password": "sam123",
     "role_id": 1
   }
+
 ###
-GET {{protocol}}://{{host}}:{{port}}/api/users/ HTTP/1.1
+GET {{base_url}}/users/ HTTP/1.1
+
 ###
-PUT {{protocol}}://{{host}}:{{port}}/api/users/8 HTTP/1.1
+GET {{base_url}}/users/?name=User HTTP/1.1
+###
+GET {{base_url}}/users/2 HTTP/1.1
+###
+GET {{base_url}}/users/2/organizations HTTP/1.1
+###
+GET {{base_url}}/users/2/files HTTP/1.1
+###
+GET {{base_url}}/users/2/reports HTTP/1.1
+###
+POST {{base_url}}/users/login HTTP/1.1
+content-type: application/json
+
+  {
+    "username": "don",
+    "password": "don123"
+  }
+
+
+###
+GET {{base_url}}/users/ HTTP/1.1
+###
+PUT {{base_url}}/users/8 HTTP/1.1
 content-type: application/json
 
   {
@@ -128,31 +113,31 @@ content-type: application/json
   }
 
 ###
-DELETE {{protocol}}://{{host}}:{{port}}/api/users/8 HTTP/1.1
+DELETE {{base_url}}/users/8 HTTP/1.1
 ###
-GET {{protocol}}://{{host}}:{{port}}/api/users/2/organizations HTTP/1.1
+GET {{base_url}}/users/2/organizations HTTP/1.1
 
 
 
 
 //======================================Organizations api======================================
 ###
-GET {{protocol}}://{{host}}:{{port}}/api/organizations/ HTTP/1.1
+GET {{base_url}}/organizations/ HTTP/1.1
 ###
-GET {{protocol}}://{{host}}:{{port}}/api/organizations/1 HTTP/1.1
+GET {{base_url}}/organizations/1 HTTP/1.1
 ###
-GET {{protocol}}://{{host}}:{{port}}/api/organizations/3/users HTTP/1.1
+GET {{base_url}}/organizations/1/users HTTP/1.1
 ###
-GET {{protocol}}://{{host}}:{{port}}/api/organizations/user/2 HTTP/1.1
+GET {{base_url}}/organizations/user/2 HTTP/1.1
 
 ###
-GET {{protocol}}://{{host}}:{{port}}/api/organizations/2/files HTTP/1.1
+GET {{base_url}}/organizations/2/files HTTP/1.1
 
 ###
-GET {{protocol}}://{{host}}:{{port}}/api/organizations/2/reports HTTP/1.1
+GET {{base_url}}/organizations/2/reports HTTP/1.1
 
 ###
-POST {{protocol}}://{{host}}:{{port}}/api/organizations/?user_id=2 HTTP/1.1
+POST {{base_url}}/organizations/?user_id=1 HTTP/1.1
 content-type: application/json
 
   {
@@ -163,9 +148,9 @@ content-type: application/json
   }
 
 ###
-GET {{protocol}}://{{host}}:{{port}}/api/organizations/ HTTP/1.1
+GET {{base_url}}/organizations/ HTTP/1.1
 ###
-PUT {{protocol}}://{{host}}:{{port}}/api/organizations/2 HTTP/1.1
+PUT {{base_url}}/organizations/2 HTTP/1.1
 content-type: application/json
 
   {
@@ -176,9 +161,9 @@ content-type: application/json
   }
 
 ###
-DELETE {{protocol}}://{{host}}:{{port}}/api/organizations/8 HTTP/1.1
+DELETE {{base_url}}/organizations/8 HTTP/1.1
 ###
-POST  {{protocol}}://{{host}}:{{port}}/api/organizations/users HTTP/1.1
+POST  {{base_url}}/organizations/users HTTP/1.1
 content-type: application/json
 
   {
@@ -187,29 +172,61 @@ content-type: application/json
     "organization_role_id": 1
   }
 ###
-DELETE {{protocol}}://{{host}}:{{port}}/api/organizations/1/user/2 HTTP/1.1
+DELETE {{base_url}}/organizations/1/user/2 HTTP/1.1
 
 
-//======================================Users organizations api======================================
+
+
+//======================================organizationRoles api======================================
 ###
-GET {{protocol}}://{{host}}:{{port}}/api/users_organizations/ HTTP/1.1
+GET {{base_url}}/organizations/1/roles/ HTTP/1.1
+
 ###
-GET {{protocol}}://{{host}}:{{port}}/api/users_organizations/?user_id=1&organization_id=1 HTTP/1.1
+GET {{base_url}}/organizations/1/roles/1 HTTP/1.1
+
 ###
-GET {{protocol}}://{{host}}:{{port}}/api/users_organizations/role?user_id=1&organization_id=1 HTTP/1.1
+POST {{base_url}}/organizations/1/roles/ HTTP/1.1
+content-type: application/json
+
+{
+    "name": "Admin ",
+    "description": "Role for admin user"
+}
+###
+PUT {{base_url}}/organizations/1/roles/1 HTTP/1.1
+content-type: application/json
+
+{
+    "name": "Admin",
+    "description": "Role for admin user"
+}
+
+###
+DELETE {{base_url}}/organizations/roles/3 HTTP/1.1
+
+
+
+
+//====================================== OrganizationsMembers api======================================
+###
+GET {{base_url}}/organizations/1/members/ HTTP/1.1
+###
+GET {{base_url}}/organizations/1/members/1 HTTP/1.1
+###
+GET {{base_url}}/organizations/1/members/1/role HTTP/1.1
 
 
 //======================================Fiels api======================================
 ###
-GET {{protocol}}://{{host}}:{{port}}/api/files/ HTTP/1.1
+GET {{base_url}}/files/ HTTP/1.1
 
 ###
-GET {{protocol}}://{{host}}:{{port}}/api/files/1 HTTP/1.1
+GET {{base_url}}/files/1 HTTP/1.1
 ###
-GET {{protocol}}://{{host}}:{{port}}/api/files/download/1 HTTP/1.1
+GET {{base_url}}/files/download/1 HTTP/1.1
 
 # ###
-# POST {{protocol}}://{{host}}:{{port}}/api/files/upload/ HTTP/1.1
+# POST {{base_url}}/files/upload/ HTTP/1.1
 # content-type: application/json
 
 #   {
@@ -219,7 +236,7 @@ GET {{protocol}}://{{host}}:{{port}}/api/files/download/1 HTTP/1.1
 #     "organization_id": 1
 #   }
 ###
-POST {{protocol}}://{{host}}:{{port}}/api/files/upload?name=MyFile&user_id=1&organization_id=1 HTTP/1.1
+POST {{base_url}}/files/upload?name=MyFile&user_id=1&organization_id=1 HTTP/1.1
 Content-Type: multipart/form-data; boundary=WebAppBoundary
 
 --WebAppBoundary
@@ -233,7 +250,7 @@ Content-Disposition: form-data; name="file"; filename="file.csv"
 --WebAppBoundary--
 
 ###
-PUT {{protocol}}://{{host}}:{{port}}/api/files/2 HTTP/1.1
+PUT {{base_url}}/files/2 HTTP/1.1
 content-type: application/json
 
   {
@@ -245,7 +262,7 @@ content-type: application/json
   }
 
 ###
-DELETE {{protocol}}://{{host}}:{{port}}/api/files/1 HTTP/1.1
+DELETE {{base_url}}/files/1 HTTP/1.1
 
 
 
@@ -253,19 +270,19 @@ DELETE {{protocol}}://{{host}}:{{port}}/api/files/1 HTTP/1.1
 
 //======================================Reports api======================================
 ###
-GET {{protocol}}://{{host}}:{{port}}/api/reports/ HTTP/1.1
+GET {{base_url}}/reports/ HTTP/1.1
 
 ###
-GET {{protocol}}://{{host}}:{{port}}/api/reports/1 HTTP/1.1
+GET {{base_url}}/reports/1 HTTP/1.1
 
 ###
-GET {{protocol}}://{{host}}:{{port}}/api/reports/1/analyzes HTTP/1.1
+GET {{base_url}}/reports/1/analyzes HTTP/1.1
 
 ###
-GET {{protocol}}://{{host}}:{{port}}/api/reports/1/visualizations HTTP/1.1
+GET {{base_url}}/reports/1/visualizations HTTP/1.1
 
 ###
-POST {{protocol}}://{{host}}:{{port}}/api/reports/ HTTP/1.1
+POST {{base_url}}/reports/ HTTP/1.1
 content-type: application/json
 
   {
@@ -276,7 +293,7 @@ content-type: application/json
   }
 
 ###
-PUT {{protocol}}://{{host}}:{{port}}/api/reports/1 HTTP/1.1
+PUT {{base_url}}/reports/1 HTTP/1.1
 content-type: application/json
 
   {
@@ -287,7 +304,7 @@ content-type: application/json
   }
 
 ###
-DELETE {{protocol}}://{{host}}:{{port}}/api/reports/3 HTTP/1.1
+DELETE {{base_url}}/reports/3 HTTP/1.1
 
 
 
@@ -295,15 +312,15 @@ DELETE {{protocol}}://{{host}}:{{port}}/api/reports/3 HTTP/1.1
 
 //======================================Analyzes api======================================
 ###
-GET {{protocol}}://{{host}}:{{port}}/api/analyzes/ HTTP/1.1
+GET {{base_url}}/analyzes/ HTTP/1.1
 
 ###
-GET {{protocol}}://{{host}}:{{port}}/api/analyzes/4 HTTP/1.1
+GET {{base_url}}/analyzes/4 HTTP/1.1
 ###
-GET {{protocol}}://{{host}}:{{port}}/api/analyzes/download/2 HTTP/1.1
+GET {{base_url}}/analyzes/download/2 HTTP/1.1
 
 ###
-POST  {{protocol}}://{{host}}:{{port}}/api/analyzes/?id=1 HTTP/1.1
+POST  {{base_url}}/analyzes/?id=1 HTTP/1.1
 content-type: application/json
 
   # {
@@ -326,7 +343,7 @@ content-type: application/json
   }
 
 ###
-PUT {{protocol}}://{{host}}:{{port}}/api/analyzes/1 HTTP/1.1
+PUT {{base_url}}/analyzes/1 HTTP/1.1
 content-type: application/json
 
   {
@@ -340,7 +357,7 @@ content-type: application/json
   }
 
 ###
-DELETE {{protocol}}://{{host}}:{{port}}/api/analyzes/3 HTTP/1.1
+DELETE {{base_url}}/analyzes/3 HTTP/1.1
 
 
 
@@ -348,16 +365,16 @@ DELETE {{protocol}}://{{host}}:{{port}}/api/analyzes/3 HTTP/1.1
 
 //======================================Visualizations api======================================
 ###
-GET {{protocol}}://{{host}}:{{port}}/api/visualizations/ HTTP/1.1
+GET {{base_url}}/visualizations/ HTTP/1.1
 ###
-GET {{protocol}}://{{host}}:{{port}}/api/visualizations/1 HTTP/1.1
+GET {{base_url}}/visualizations/1 HTTP/1.1
 ###
-GET {{protocol}}://{{host}}:{{port}}/api/visualizations/data/4 HTTP/1.1
+GET {{base_url}}/visualizations/data/4 HTTP/1.1
 ###
-GET {{protocol}}://{{host}}:{{port}}/api/visualizations/download/4 HTTP/1.1
+GET {{base_url}}/visualizations/download/4 HTTP/1.1
 
 ###
-POST {{protocol}}://{{host}}:{{port}}/api/visualizations/ HTTP/1.1
+POST {{base_url}}/visualizations/ HTTP/1.1
 content-type: application/json
 
   {
@@ -366,7 +383,7 @@ content-type: application/json
   }
 
 ###
-PUT {{protocol}}://{{host}}:{{port}}/api/visualizations/1 HTTP/1.1
+PUT {{base_url}}/visualizations/1 HTTP/1.1
 content-type: application/json
 
   {
@@ -376,4 +393,4 @@ content-type: application/json
   }
 
 ###
-DELETE {{protocol}}://{{host}}:{{port}}/api/visualizations/1 HTTP/1.1
+DELETE {{base_url}}/visualizations/1 HTTP/1.1
