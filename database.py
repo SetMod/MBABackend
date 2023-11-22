@@ -1,10 +1,8 @@
-from app.init import app, db
 from app.config import APP_DATABASE_PATH
-import os
-
-# import sys
-# import getopt
+from app.db import db
+from app import create_app
 import argparse
+import os
 
 
 def recreate_database():
@@ -30,12 +28,13 @@ def create_database():
 
 
 if __name__ == "__main__":
-    app.app_context()
+    app = create_app()
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--create-db", action="store_true")
     parser.add_argument("-d", "--delete-db", action="store_true")
     parser.add_argument("-r", "--recreate-db", action="store_true")
     args = parser.parse_args()
+
     if args.create_db:
         with app.app_context():
             create_database()

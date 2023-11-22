@@ -131,7 +131,7 @@ visualizations_data = [
 #     visualization_data.to_csv(visualization_file_path, index=False)
 
 
-# file_path = os.path.join(ANALYZES_UPLOAD_FOLDER, f"ar_{mba.id}.csv")
+# file_path = os.path.join(APP_ANALYZES_FOLDER, f"ar_{mba.id}.csv")
 
 # association_rules.to_csv(file_path, index=False)
 # print(json.dumps(association_rules))
