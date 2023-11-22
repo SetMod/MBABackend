@@ -1,449 +1,243 @@
-from app import db
-from marshmallow import ValidationError
+from typing import List
+from sqlalchemy import Table
+from app.exceptions import CustomBadRequest, CustomNotFound
+from app.logger import logger
+from app.db import db
 from app.models import (
-    FilesSchema,
+    Datasources,
     OrganizationRoles,
-    OrganizationRolesSchema,
     Organizations,
-    OrganizationsSchema,
-    ReportsSchema,
+    Reports,
     Users,
-    UsersSchema,
-    UsersOrganizations,
+    organization_members,
 )
-from app.services import (
-    OrganizationRolesService,
-    UsersOrganizationsService,
-    UsersService,
-)
+from app.schemas import OrganizationsSchema
+from app.services.GenericService import GenericService
+from app.services.OrganizationRolesService import OrganizationRolesService
+from app.services.UsersService import UsersService
 
 
-class OrganizationsService:
+class OrganizationsService(GenericService):
+    users_service = UsersService()
+    organization_roles_service = OrganizationRolesService()
+
     def __init__(self) -> None:
-        self.users_service = UsersService()
-        self.organization_roles_service = OrganizationRolesService()
-        self.users_organizations_service = UsersOrganizationsService()
-        self.organizations_schema = OrganizationsSchema()
-        self.organization_roles_schema = OrganizationRolesSchema()
-        self.users_schema = UsersSchema()
-        self.files_schema = FilesSchema()
-        self.reports_schema = ReportsSchema()
+        super().__init__(schema=OrganizationsSchema(), model_class=Organizations)
 
-    def get_all_organizations(self, dump: bool = True):
-        try:
-            organizations = db.session.query(Organizations).all()
+    def get_all_reports(self, id: int) -> List[Reports]:
+        logger.info(f"Getting {self.model_class._name()} reports")
 
-            if len(organizations) > 0:
-                return (
-                    self.organizations_schema.dump(organizations, many=True)
-                    if dump
-                    else organizations
-                )
-            else:
-                return "Organizations not found"
-        except Exception as err:
-            print(err)
-            return "Failed to get organizations"
+        organization: Organizations = self.get_by_id(id)
+        reports: List[Reports] = organization.reports
 
-    def get_organization_by_id(self, id: int, dump: bool = True):
-        try:
-            organization = (
-                db.session.query(Organizations).where(Organizations.id == id).first()
+        logger.info(f"Found {self.model_class._name()} reports: {reports}")
+
+        return reports
+
+    def get_all_datasources(self, id: int) -> List[Datasources]:
+        logger.info(f"Getting {self.model_class._name()} datasources")
+
+        organization: Organizations = self.get_by_id(id)
+        datasources: List[Datasources] = organization.datasources
+
+        logger.info(f"Found {self.model_class._name()} datasources: {datasources}")
+
+        return datasources
+
+    def get_all_members(self, id: int) -> List[Users]:
+        logger.info(f"Getting {self.model_class._name()} members")
+
+        organization: Organizations = self.get_by_id(id)
+        members: List[Users] = organization.members
+
+        logger.info(f"Found {self.model_class._name()} members: {members}")
+
+        return members
+        # organization = self.get_by_id(id, dump=False)
+
+        # if isinstance(organization, str):
+        #     return organization
+
+        # users_and_roles = (
+        #     db.session.query(Users, OrganizationRoles)
+        #     .select_from(Users)
+        #     .join(OrganizationMembers)
+        #     .filter(
+        #         Users.id == OrganizationMembers.user_id,
+        #         OrganizationMembers.organization_id == id,
+        #         OrganizationRoles.id == OrganizationMembers.organization_role_id,
+        #     )
+        #     .all()
+        # )
+
+        # return self.__users_dump(users_and_roles) if dump else users_and_roles
+
+    # def __users_dump(self, users_and_roles: List[Row[Tuple[Users, OrganizationRoles]]]):
+    #     result = []
+    #     for usr, org_role in users_and_roles:
+    #         user = self.users_schema.dump(usr)
+    #         organization_role = self.organization_roles_schema.dump(org_role)
+    #         result.append({**user, **organization_role})
+    #     return result
+
+    # def __organizations_dump(
+    #     self,
+    #     organizations_and_roles: List[Row[Tuple[Organizations, OrganizationRoles]]],
+    # ):
+    #     result = []
+    #     for org, org_role in organizations_and_roles:
+    #         organization = self.schema.dump(org)
+    #         organization_role = self.organization_roles_schema.dump(org_role)
+    #         result.append({**organization, **organization_role})
+    #     return result
+
+    def get_organization_member(
+        self, organization_id: int, user_id: int, must_exist: bool = True
+    ) -> Table:
+        logger.info(f"Getting {self.__class__._name()} member")
+
+        organization: Organizations = self.get_by_id(organization_id)
+        organization_member = db.session.execute(
+            db.select(organization_members).where(
+                organization_members.c.organization_id == organization.id
+                and organization_members.c.user_id == user_id
             )
+        ).scalar_one_or_none()
 
-            if isinstance(organization, Organizations):
-                return (
-                    self.organizations_schema.dump(organization)
-                    if dump
-                    else organization
-                )
-            else:
-                return "Organization not found"
-        except Exception as err:
-            print(err)
-            return "Failed to get organization"
+        if must_exist and not organization_member:
+            msg = f"{self.__class__._name(lower=False)} member with id='{user_id}' not found"
+            logger.warning(msg)
+            raise CustomNotFound(msg)
+        elif not must_exist and organization_member:
+            msg = f"{self.__class__._name(lower=False)} member with id='{user_id}' already exists"
+            logger.warning(msg)
+            raise CustomBadRequest(msg)
 
-    def get_user_organizations(self, user_id: int, dump: bool = True):
-        try:
-            user = self.users_service.get_user_by_id(user_id, dump=False)
-
-            if not isinstance(user, Users):
-                return user
-
-            organizations_and_roles = (
-                db.session.query(Organizations, OrganizationRoles)
-                .select_from(Organizations)
-                .join(UsersOrganizations)
-                .filter(
-                    Organizations.id == UsersOrganizations.organization_id,
-                    UsersOrganizations.user_id == user_id,
-                    OrganizationRoles.id == UsersOrganizations.organization_role_id,
-                )
-                .all()
-            )
-
-            def organizations_dump(
-                organization: Organizations, organization_role: OrganizationRoles
-            ):
-                org = self.organizations_schema.dump(organization)
-                org_role = self.organization_roles_schema.dump(organization_role)
-                return {**org, **org_role}
-
-            if len(organizations_and_roles) > 0:
-                return (
-                    [
-                        organizations_dump(org, org_role)
-                        for org, org_role in organizations_and_roles
-                    ]
-                    if dump
-                    else organizations_and_roles
-                )
-            else:
-                return "Organizations not found"
-        except Exception as err:
-            print(err)
-            return "Failed to get user organizations"
-
-    def get_organization_users(self, id: int, dump: bool = True):
-        try:
-            organization = self.get_organization_by_id(id, dump=False)
-
-            if isinstance(organization, str):
-                return organization
-
-            users_and_roles = (
-                db.session.query(Users, OrganizationRoles)
-                .select_from(Users)
-                .join(UsersOrganizations)
-                .filter(
-                    Users.id == UsersOrganizations.user_id,
-                    UsersOrganizations.organization_id == id,
-                    OrganizationRoles.id == UsersOrganizations.organization_role_id,
-                )
-                .all()
-            )
-
-            def users_dump(user: Users, organization_role: OrganizationRoles):
-                usr = self.users_schema.dump(user)
-                org_role = self.organization_roles_schema.dump(organization_role)
-                return {**usr, **org_role}
-
-            if len(users_and_roles) > 0:
-                return (
-                    [users_dump(usr, org_role) for usr, org_role in users_and_roles]
-                    if dump
-                    else users_and_roles
-                )
-            else:
-                return "Users not found"
-        except Exception as err:
-            print(err)
-            return "Failed to get organization users"
-
-    def get_organization_reports(self, id: int, dump: bool = True):
-        organization = self.get_organization_by_id(id, dump=False)
-
-        if isinstance(organization, str):
-            return organization
-
-        if organization is not None and len(organization.organization_reports) > 0:
-            return (
-                self.reports_schema.dump(organization.organization_reports, many=True)
-                if dump
-                else organization.organization_reports
-            )
-        else:
-            return "No organization reports was found"
-
-    def get_organization_files(self, id: int, dump: bool = True):
-        organization = self.get_organization_by_id(id, dump=False)
-
-        if isinstance(organization, str):
-            return organization
-
-        if len(organization.organization_files) > 0:
-            return (
-                self.files_schema.dump(organization.organization_files, many=True)
-                if dump
-                else organization.organization_files
-            )
-        else:
-            return "No organization files was found"
-
-    def get_organization_by_name(self, name: str, dump: bool = True):
-        try:
-            organization = (
-                db.session.query(Organizations)
-                .where(Organizations.name == name)
-                .first()
-            )
-
-            if isinstance(organization, Organizations):
-                return (
-                    self.organizations_schema.dump(organization)
-                    if dump
-                    else organization
-                )
-            else:
-                return "Organization not found"
-        except Exception as err:
-            print(err)
-            return "Failed to get organization"
-
-    def get_organization_by_email(self, email: str, dump: bool = True):
-        try:
-            organization = (
-                db.session.query(Organizations)
-                .where(Organizations.email == email)
-                .first()
-            )
-
-            if isinstance(organization, Organizations):
-                return (
-                    self.organizations_schema.dump(organization)
-                    if dump
-                    else organization
-                )
-            else:
-                return "Organization not found"
-        except Exception as err:
-            print(err)
-            return "Failed to get organization"
-
-    def get_organization_by_phone(self, phone: str, dump: bool = True):
-        try:
-            organization = (
-                db.session.query(Organizations)
-                .where(Organizations.phone == phone)
-                .first()
-            )
-
-            if isinstance(organization, Organizations):
-                return (
-                    self.organizations_schema.dump(organization)
-                    if dump
-                    else organization
-                )
-            else:
-                return "Organization not found"
-        except Exception as err:
-            print(err)
-            return "Failed to get organization"
-
-    def create_organization(
-        self, new_organization: Organizations, user_id: int, dump: bool = True
-    ):
-        existing_organization = self.get_organization_by_name(
-            new_organization.name, dump=False
+        logger.info(
+            f"Found {self.__class__._name()} organization member: {organization_member}"
         )
 
-        if isinstance(existing_organization, Organizations):
-            return f"Name is already taken"
+        return organization_member
 
-        existing_organization = self.get_organization_by_email(
-            new_organization.email, dump=False
-        )
-        if isinstance(existing_organization, Organizations):
-            return "Email is already taken"
+    def get_member_by_id(self, id: int, user_id: int) -> Users:
+        logger.info(f"Getting {self.__class__._name()} member where id='{id}'")
 
-        if new_organization.phone:
-            existing_organization = self.get_organization_by_phone(
-                new_organization.phone, dump=False
+        organization_member = self.get_organization_member(id, user_id)
+        user: Users = self.users_service.get_by_id(organization_member.c.user_id)
+
+        return user
+        # if not isinstance(user, Users):
+        #     return user
+
+        # organizations_and_roles = (
+        #     db.session.query(Organizations, OrganizationRoles)
+        #     .select_from(Organizations)
+        #     .join(OrganizationMembers)
+        #     .filter(
+        #         Organizations.id == OrganizationMembers.organization_id,
+        #         OrganizationMembers.user_id == user_id,
+        #         OrganizationRoles.id == OrganizationMembers.organization_role_id,
+        #     )
+        #     .all()
+        # )
+
+        # return (
+        #     self.__organizations_dump(organizations_and_roles)
+        #     if dump
+        #     else organizations_and_roles
+        # )
+
+    def get_member_organization_role_by_id(
+        self, id: int, user_id: int
+    ) -> OrganizationRoles:
+        logger.info(f"Getting {self.model_class._name()} member role")
+
+        organization_member = self.get_organization_member(id, user_id)
+        organization_role: OrganizationRoles = (
+            self.organization_roles_service.get_by_id(
+                organization_member.c.organization_role_id
             )
-            if isinstance(existing_organization, Organizations):
-                return f"Phone is already taken"
-
-        organization_role = (
-            self.organization_roles_service.get_organization_role_by_name(
-                "Admin", dump=False
-            )
         )
-        print(organization_role)
-        try:
-            db.session.add(new_organization)
-            db.session.commit()
 
-            if not isinstance(organization_role, OrganizationRoles):
-                return organization_role
-            user_organization = UsersOrganizations(
-                organization_id=new_organization.id,
-                user_id=user_id,
+        return organization_role
+
+    def add_member(self, id: int, user_id: int, organization_role_id: int) -> Users:
+        logger.info(f"Adding {self.model_class._name()} member")
+
+        self.get_organization_member(id, user_id, must_exist=False)
+        user: Users = self.users_service.get_by_id(user_id)
+        organization_role: OrganizationRoles = (
+            self.organization_roles_service.get_by_id(organization_role_id)
+        )
+
+        db.session.execute(
+            organization_members.insert().values(
+                organization_id=id,
+                user_id=user.id,
                 organization_role_id=organization_role.id,
             )
-            self.add_user_to_organization(user_organization)
-
-            return (
-                self.organizations_schema.dump(new_organization)
-                if dump
-                else new_organization
-            )
-        except Exception as err:
-            print(err)
-            return "Failed to create new organization"
-
-    def add_user_to_organization(
-        self, user_organization: UsersOrganizations, dump: bool = True
-    ):
-        user = self.users_service.get_user_by_id(user_organization.user_id, dump=False)
-        if isinstance(user, str):
-            return user
-
-        organization = self.get_organization_by_id(
-            user_organization.organization_id, dump=False
         )
-        if isinstance(organization, str):
-            return user
+        self.commit()
 
-        organization_role = self.organization_roles_service.get_organization_role_by_id(
-            user_organization.organization_role_id, dump=False
+        logger.info(
+            f"Successfully added to {self._name()} new member with user_id='{user_id}' and organization_role_id='{organization_role_id}'"
         )
-        if isinstance(organization_role, str):
-            return organization_role
 
-        if isinstance(user, Users) and isinstance(organization, Organizations):
-            existing_user_organization = (
-                self.users_organizations_service.get_user_organization(
-                    user.id, organization.id, dump=False
-                )
-            )
+        return user
+        # organization_role = self.organization_roles_service.get_by_id(
+        #     id=new_organization_member.organization_role_id, dump=False
+        # )
+        # if not isinstance(organization_role, OrganizationRoles):
+        #     return None
 
-            if isinstance(existing_user_organization, UsersOrganizations):
-                return "User already in this organization"
+        # organization_member = self.organization_members_service.get_organization_member(
+        #     user_id=new_organization_member.user_id,
+        #     organization_id=new_organization_member.organization_id,
+        #     dump=False,
+        # )
+        # if isinstance(organization_member, OrganizationMembers):
+        #     return None
 
-        try:
-            # user.user_organizations.append(organization)
-            db.session.add(user_organization)
-            db.session.commit()
-            # added_user_organization = self.users_organizations_service.get_user_organization(
-            #     user_organization.user_id, user_organization.organization_id)
-            # print(added_user_organization)
+        # db.session.add(new_organization_member)
+        # db.session.commit()
 
-            # added_user_organization.organization_role_id = user_organization.organization_role_id
-            # db.session.commit()
-            return (
-                self.organizations_schema.dump(user.user_organizations, many=True)
-                if dump
-                else user.user_organizations
-            )
-            # return self.users_schema.dump(user) if dump else user
-        except Exception as err:
-            print(err)
-            return "Failed to add user to organization"
+        # return (
+        #     self.organization_members_schema.dump(new_organization_member, many=True)
+        #     if dump
+        #     else new_organization_member
+        # )
 
-    def update_organization(
-        self,
-        id: int,
-        updated_organization: Organizations,
-        dump: bool = True,
-    ):
-        organization = self.get_organization_by_id(id, dump=False)
-        if not isinstance(organization, Organizations):
-            return organization
+    # def update_member(self, user_id: int):
+    #     member = self.get_member_by_id(user_id)
+    #     user = Users.get_by_id(user_id)
+    #     self.members.remove(user)
+    #     db.session.commit()
 
-        existing_organization = self.get_organization_by_name(
-            updated_organization.name, dump=False
+    def remove_member(self, id: int, user_id: int):
+        organization_member = self.get_member_by_id(id, user_id)
+        organization: Organizations = self.get_by_id(id)
+        user = self.users_service.get_by_id(organization_member.c.user_id)
+
+        organization.members.remove(user)
+        self.commit()
+
+        logger.info(
+            f"Successfully removed {self._name()} member with user_id='{user_id}'"
         )
-        if (
-            isinstance(existing_organization, Organizations)
-            and organization.name != updated_organization.name
-        ):
-            return f"Name is already taken"
 
-        existing_organization = self.get_organization_by_email(
-            updated_organization.email, dump=False
-        )
-        if (
-            isinstance(existing_organization, Organizations)
-            and organization.email != updated_organization.email
-        ):
-            return "Email is already taken"
+        return user
+        # organization_member = self.organization_members_service.get_organization_member(
+        #     user_id=user_id,
+        #     organization_id=organization_id,
+        #     dump=False,
+        # )
+        # if not isinstance(organization_member, OrganizationMembers):
+        #     return None
 
-        if updated_organization.phone:
-            existing_organization = self.get_organization_by_phone(
-                updated_organization.phone, dump=False
-            )
-            if (
-                isinstance(existing_organization, Organizations)
-                and organization.phone != updated_organization.phone
-            ):
-                return f"Phone is already taken"
-
-        organization.name = updated_organization.name
-        organization.description = updated_organization.description
-        organization.email = updated_organization.email
-        organization.phone = updated_organization.phone
-        try:
-            db.session.commit()
-            return (
-                self.organizations_schema.dump(organization) if dump else organization
-            )
-        except Exception as err:
-            print(err)
-            return "Failed to update organization"
-
-    def delete_user_from_organization(
-        self, user_id: int, organization_id: int, dump: bool = True
-    ):
-        user = self.users_service.get_user_by_id(user_id, dump=False)
-        if not isinstance(user, Users):
-            return user
-
-        organization = self.get_organization_by_id(organization_id, dump=False)
-        if isinstance(organization, str):
-            return user
-
-        user_organization = self.users_organizations_service.get_user_organization(
-            user.user_id, organization.id, dump=False
-        )
-        if isinstance(user_organization, str):
-            return user_organization
-
-        try:
-            # user.user_organizations.remove(organization)
-            db.session.delete(user_organization)
-            db.session.commit()
-            return (
-                self.organizations_schema.dump(user.user_organizations, many=True)
-                if dump
-                else user.user_organizations
-            )
-            # return self.users_schema.dump(user) if dump else user
-        except Exception as err:
-            print(err)
-            return "Failed to delete user from organization"
-
-    def delete_organization(self, id: int, dump: bool = True):
-        organization = self.get_organization_by_id(id, dump=False)
-        if not isinstance(organization, Organizations):
-            return organization
-
-        try:
-            db.session.delete(organization)
-            db.session.commit()
-            return (
-                self.organizations_schema.dump(organization) if dump else organization
-            )
-        except Exception as err:
-            print(err)
-            return "Failed to delete organization"
-
-    def map_organization(self, organization_dict: dict):
-        try:
-            organization = self.organizations_schema.load(organization_dict)
-            name = organization_dict["name"]
-            description = organization_dict["description"]
-            email = organization_dict["email"]
-            phone = organization_dict["phone"]
-            organization = Organizations(
-                name=name,
-                description=description,
-                email=email,
-                phone=phone,
-            )
-            return organization
-        except ValidationError as err:
-            print(err)
-            return err.messages
-        except Exception as err:
-            print(err)
-            return "Failed to map organization"
+        # db.session.delete(organization_member)
+        # db.session.commit()
+        # return (
+        #     self.organization_members_schema.dump(organization_member, many=True)
+        #     if dump
+        #     else organization_member
+        # )

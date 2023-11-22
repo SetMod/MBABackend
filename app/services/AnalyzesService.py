@@ -1,17 +1,21 @@
-from app.config import ANALYZES_UPLOAD_FOLDER, logger
-from app.models import Analyzes, AnalyzesSchema, Files, Visualizations
-from app.services import FilesService, GenericService, VisualizationsService
-import model.MBAnalyze as mba
-from app.init import db
-import pandas as pd
 import os
+import pandas as pd
+import model.MBAnalyze as mba
+from app.config import APP_ANALYZES_FOLDER
+from app.logger import logger
+from app.db import db
+from app.models import Analyzes, FileDatasources, Visualizations
+from app.schemas import AnalyzesSchema, FileDatasourcesSchema
+from app.services.GenericService import GenericService
+from app.services.VisualizationsService import VisualizationsService
 
 
 class AnalyzesService(GenericService):
+    files_service = FileDatasourcesSchema()
+    visualizations_service = VisualizationsService()
+
     def __init__(self) -> None:
         super().__init__(schema=AnalyzesSchema(), model_class=Analyzes)
-        self.files_service = FilesService()
-        self.visualizations_service = VisualizationsService()
 
     def get_association_rules(self, id: int):
         analyze = self.get_by_id(id=id, dump=False)
@@ -27,7 +31,7 @@ class AnalyzesService(GenericService):
 
     def create_analyze(self, analyze: Analyzes, id: int, dump: bool = True):
         file = self.files_service.get_file_by_id(id, dump=False)
-        if not isinstance(file, Files):
+        if not isinstance(file, FileDatasources):
             return file
 
         # mba = MBAnalyze(
@@ -102,7 +106,7 @@ class AnalyzesService(GenericService):
         db.session.add(analyze)
         db.session.commit()
 
-        file_path = os.path.join(ANALYZES_UPLOAD_FOLDER, f"ar_{analyze.id}.csv")
+        file_path = os.path.join(APP_ANALYZES_FOLDER, f"ar_{analyze.id}.csv")
 
         if os.path.exists(file_path):
             logger.warn(f"File {file_path} already exists")

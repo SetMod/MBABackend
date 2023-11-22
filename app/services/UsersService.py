@@ -1,106 +1,70 @@
+from typing import List
+from app.exceptions import CustomBadRequest
+from app.logger import logger
 from app.models import (
-    FilesSchema,
-    OrganizationsSchema,
-    ReportsSchema,
-    RolesSchema,
+    Roles,
     Users,
-    UsersSchema,
+    Organizations,
+    Reports,
+    Datasources,
 )
-from app.services import (
-    OrganizationRolesService,
-    UsersOrganizationsService,
-    GenericService,
-    RolesService,
-)
-from app.init import db
+from app.schemas import UsersSchema
+from app.services.GenericService import GenericService
 
 
 class UsersService(GenericService):
     def __init__(self) -> None:
         super().__init__(schema=UsersSchema(), model_class=Users)
-        self.users_organizations_service = UsersOrganizationsService()
-        self.organization_roles_service = OrganizationRolesService()
-        self.roles_service = RolesService()
-        self.reports_schema = ReportsSchema()
-        self.organizations_schema = OrganizationsSchema()
-        self.roles_schema = RolesSchema()
-        self.files_schema = FilesSchema()
 
-    def get_user_role(self, id: int, dump: bool = True):
-        user = self.get_by_id(id, dump=False)
+    def get_role(self, id: int) -> Roles:
+        logger.info(f"Getting {self.model_class._name()} role")
 
-        if not isinstance(user, Users):
-            return None
+        user: Users = self.get_by_id(id)
+        role: Roles = user.role
 
-        return self.roles_schema.dump(user.user_role) if dump else user.user_role
+        logger.info(f"Found {self.model_class._name()} role: {role}")
 
-    def get_user_by_credentials(self, username: str, password: str, dump: bool = True):
-        user = (
-            db.session.query(Users)
-            .where(
-                Users.username == username,
-                Users.password == password,
-            )
-            .first()
-        )
+        return role
 
-        if not user:
-            return None
+    def get_all_organizations(self, id: int) -> List[Organizations]:
+        logger.info(f"Getting {self.model_class._name()} organizations")
 
-        return self.users_schema.dump(user) if dump else user
+        user: Users = self.get_by_id(id)
+        organizations: List[Organizations] = user.organizations
 
-    def get_users_by_role(self, name: str, dump: bool = True):
-        role = self.roles_service.get_by_field(
-            field_name="name",
-            field_value=name,
-            dump=False,
-        )
+        logger.info(f"Found {self.model_class._name()} organizations: {organizations}")
 
-        if not isinstance(role, self.roles_service.model_class):
-            return None
+        return organizations
 
-        # Add pagination
-        return (
-            self.users_schema.dump(role.role_users, many=True)
-            if dump
-            else role.role_users
-        )
+    def get_all_reports(self, id: int) -> List[Reports]:
+        logger.info(f"Getting {self.model_class._name()} reports")
 
-    def get_user_organizations(self, id: int, dump: bool = True):
-        user = self.get_by_id(id, dump=False)
+        user: Users = self.get_by_id(id)
+        reports: List[Reports] = user.reports
 
-        if not isinstance(user, Users):
-            return None
+        logger.info(f"Found {self.model_class._name()} reports: {reports}")
 
-        # Add pagination
-        return (
-            self.organizations_schema.dump(user.user_organizations, many=True)
-            if dump
-            else user.user_organizations
-        )
+        return reports
 
-    def get_user_reports(self, id: int, dump: bool = True):
-        user = self.get_by_id(id, dump=False)
+    def get_all_datasources(self, id: int) -> List[Datasources]:
+        logger.info(f"Getting {self.model_class._name()} datasources")
 
-        if not isinstance(user, Users):
-            return None
+        user: Users = self.get_by_id(id)
+        datasources: List[Datasources] = user.datasources
 
-        # Add pagination
-        return (
-            self.reports_schema.dump(user.user_reports, many=True)
-            if dump
-            else user.user_reports
-        )
+        logger.info(f"Found {self.model_class._name()} datasources: {datasources}")
 
-    def get_user_files(self, id: int, dump: bool = True):
-        user = self.get_by_id(id, dump=False)
+        return datasources
 
-        if not isinstance(user, Users):
-            return None
+    def login(self, username: str, password: str) -> Users:
+        logger.info(f"Logging in {self.model_class._name()}")
 
-        # Add pagination
-        return (
-            self.files_schema.dump(user.user_files, many=True)
-            if dump
-            else user.user_files
-        )
+        existing_model: Users = self.get_by_field("username", username)
+        correct_password = existing_model.verify_password(password)
+
+        if not correct_password and existing_model:
+            msg = f"{self.model_class._name(lower=False)} password is incorrect"
+            logger.warning(msg)
+            raise CustomBadRequest(msg)
+
+        return existing_model

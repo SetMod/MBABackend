@@ -1,34 +1,22 @@
-from app.models import AnalyzesSchema, VisualizationsSchema, Reports, ReportsSchema
-from app.services import GenericService
-from app.init import db
+from typing import List
+from app.logger import logger
+from app.models import Reports, Visualizations
+from app.schemas import ReportsSchema
+from app.services.GenericService import GenericService
 
 
 class ReportsService(GenericService):
     def __init__(self) -> None:
         super().__init__(schema=ReportsSchema(), model_class=Reports)
-        self.analyzes_schema = AnalyzesSchema()
-        self.visualizations_schema = VisualizationsSchema()
 
-    def get_report_analyzes(self, id: int, dump: bool = True):
-        report = db.session.query(Reports).where(Reports.id == id).first()
+    def get_all_visualizations(self, id: int) -> List[Visualizations]:
+        logger.info(f"Get {self.model_class._name()} visualizations")
 
-        if not isinstance(report, Reports):
-            return None
+        report: Reports = self.get_by_id(id)
+        visualizations: List[Visualizations] = report.visualizations
 
-        return (
-            self.analyzes_schema.dump(report.report_analyzes, many=True)
-            if dump
-            else report.report_analyzes
+        logger.info(
+            f"Found {self.model_class._name()} visualizations: {visualizations}"
         )
 
-    def get_report_visualizations(self, id: int, dump: bool = True):
-        report = db.session.query(Reports).where(Reports.id == id).first()
-
-        if not isinstance(report, Reports):
-            return None
-
-        return (
-            self.visualizations_schema.dump(report.report_visualizations, many=True)
-            if dump
-            else report.report_visualizations
-        )
+        return visualizations
