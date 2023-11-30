@@ -1,7 +1,8 @@
+from enum import Enum
 from typing import List, Union
 from datetime import datetime
 from sqlalchemy.exc import IntegrityError, PendingRollbackError
-from sqlalchemy import Row
+from sqlalchemy import Row, or_
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from marshmallow import ValidationError
 from app.exceptions import CustomBadRequest, CustomNotFound
@@ -31,14 +32,13 @@ class GenericService:
     def map_model(self, model_dict: dict) -> GenericModel:
         logger.info(f"Mapping {self.model_class._name()} model")
         try:
-            model = self.schema.load(model_dict)
+            model_dict = self.schema.load(model_dict)
             model = self.model_class(**model_dict)
             logger.info(f"Mapped {self.model_class._name()}: {model}")
             return model
         except ValidationError as err:
-            err_msg = (
-                err.messages
-            )  # f"Failed to map {self.model_name()]} model due to {err}"
+            err_msg = err.messages
+            # err_msg = f"Failed to map {self.model_name()} model due to {err}"
             logger.error(err_msg)
             raise CustomBadRequest(err_msg)
 
@@ -81,7 +81,9 @@ class GenericService:
         logger.info(f"Found {self.model_class._name()}: {model}")
         return model
 
-    def get_by_field(self, field_name: str, field_value) -> GenericModel:
+    def get_by_field(
+        self, field_name: str, field_value, must_exist: bool = True
+    ) -> GenericModel:
         logger.info(
             f"Getting {self.model_class._name()} with {field_name}='{field_value}'"
         )
@@ -95,35 +97,33 @@ class GenericService:
             db.select(self.model_class).where(field == field_value)
         ).scalar_one_or_none()
 
-        if not model:
-            msg = f"{self.model_class._name(lower=False)} with {field_name}='{field_value}' not found"
+        if must_exist and not model:
+            msg = f"{self.model_class._name(lower=False)} with field {field_name}='{field_value}' not found"
             logger.warning(msg)
             raise CustomNotFound(msg)
+        elif not must_exist and model:
+            msg = f"{self.model_class._name(lower=False)} with field {field_name}='{field_value}' already exists"
+            logger.warning(msg)
+            raise CustomBadRequest(msg)
 
         logger.info(f"Found {self.model_class._name()}: {model}")
         return model
 
     def get_by_fields(
-        self, model_dict: dict, many=False
+        self, model_dict: dict, many: bool = False, must_exist: bool = True
     ) -> Union[GenericModel, List[GenericModel]]:
-        logger.info(f"Getting {self.model_class._name(many=many)} with {model_dict}")
+        logger.info(
+            f"Getting {self.model_class._name(many=many)} with fields {model_dict}"
+        )
         for key in model_dict:
-            if not hasattr(self.model_class, key):
+            if key not in [
+                column.name for column in self.model_class.__table__.columns
+            ]:
                 msg = (
                     f"{self.model_class._name(lower=False)} doesn't have '{key}' field"
                 )
                 logger.warning(msg)
                 raise CustomBadRequest(msg)
-
-            # value = getattr(self.model_class, key)
-            # if not isinstance(val, type(value)):
-            #     try:
-            #         model_dict[key] = type(value)(val)
-            #     except Exception as err:
-            #         msg = f"Failed to cast {key}='{val}' to '{type(value)}' type"
-            #         logger.error(msg)
-            #         logger.exception(err)
-            #         raise CustomBadRequest(msg)
 
         if many:
             models: List[GenericModel] = (
@@ -137,17 +137,18 @@ class GenericService:
         else:
             model: Row[GenericModel] = db.session.execute(
                 db.select(self.model_class).filter_by(**model_dict)
-            ).first()  # .scalar_one_or_none()
+            ).scalar()
+            # ).scalar_one_or_none()
 
-            if not model:
-                msg = (
-                    f"{self.model_class._name(lower=False)} with {model_dict} not found"
-                )
+            if must_exist and not model:
+                msg = f"{self.model_class._name(lower=False)} with fields '{model_dict}' not found"
                 logger.warning(msg)
                 raise CustomNotFound(msg)
+            elif not must_exist and model:
+                msg = f"{self.model_class._name(lower=False)} with fields '{model_dict}' already exists"
+                logger.warning(msg)
+                raise CustomBadRequest(msg)
 
-            # Get first column from the Row object
-            model = model[0]
             logger.info(f"Found {self.model_class._name()}: {model}")
             return model
 
@@ -156,14 +157,31 @@ class GenericService:
     ) -> Union[GenericModel, None]:
         logger.info(f"Getting {self.model_class._name()} by unique fields")
 
-        unique_fields = self.model_class._get_unique_fields(model_dict)
+        unique_fields = {}
+        for column in self.model_class.__table__.columns:
+            if column.unique:
+                column_name = column.name
+                if column_name in model_dict:
+                    unique_fields[column_name] = model_dict[column_name]
+
+        logger.info(
+            f"{self.model_class._name(lower=False)} unique fields: {unique_fields}"
+        )
 
         if not unique_fields:
             return None
 
+        conditions = [
+            getattr(self.model_class, field) == value
+            for field, value in unique_fields.items()
+        ]
         existing_model = db.session.execute(
-            db.select(self.model_class).filter_by(**unique_fields)
+            db.select(self.model_class).where(or_(*conditions))
         ).scalar_one_or_none()
+
+        # existing_model = db.session.execute(
+        #     db.select(self.model_class).filter_by(**unique_fields)
+        # ).scalar_one_or_none()
 
         logger.info(f"Found {self.model_class._name()}: {existing_model}")
         if must_exist and not existing_model:
@@ -197,9 +215,8 @@ class GenericService:
         logger.info(f"Creating new {self.model_class._name()}")
 
         self.get_by_unique_fields(new_model_dict, must_exist=False)
+        new_model = self.map_model(new_model_dict)
 
-        # new_model = self.map_model(new_model_dict)
-        new_model = self.model_class(**new_model_dict)
         db.session.add(new_model)
         self.commit()
 
@@ -215,10 +232,15 @@ class GenericService:
         self.get_by_unique_fields(updated_model_dict, must_exist=False)
         existing_model: GenericModel = self.get_by_id(id)
 
+        existing_model_dict = self.to_json(existing_model)
         for field in existing_model.updatable_fields:
             if field in updated_model_dict:
-                value = updated_model_dict[field]
-                setattr(existing_model, field, value)
+                existing_model_dict[field] = updated_model_dict[field]
+
+        updated_model = self.map_model(existing_model_dict)
+        for field in existing_model.updatable_fields:
+            value = getattr(updated_model, field)
+            setattr(existing_model, field, value)
 
         existing_model.updated_date = datetime.utcnow()
         self.commit()
