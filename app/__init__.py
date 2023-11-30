@@ -14,6 +14,7 @@ from app.config import (
 from sqlalchemy.exc import OperationalError
 from app.db import db, ma, migrate
 from app.jwt import jwt
+from app.mail import mail
 from app.routes import register_blueprints
 
 
@@ -60,6 +61,7 @@ def create_app() -> Flask:
     jwt.init_app(app)
     db.init_app(app)
     ma.init_app(app)
+    mail.init_app(app)
     migrate.init_app(app)
 
     create_database(app, db)
