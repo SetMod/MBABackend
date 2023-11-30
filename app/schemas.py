@@ -1,27 +1,54 @@
 from app.db import ma
+from marshmallow import ValidationError, fields, validates_schema
 from app.models import (
+    AnalyzeStatus,
+    DatasourceTypes,
+    OrganizationMembers,
     OrganizationRoles,
-    Roles,
     Organizations,
+    ReportTypes,
+    Roles,
     Users,
     Reports,
     Datasources,
     FileDatasources,
+    VisualizationTypes,
     Visualizations,
     DataVisualizations,
     FileVisualizations,
     Analyzes,
 )
+from app.utils import password_check
 
 
-class OrganizationRolesSchema(ma.SQLAlchemyAutoSchema):
+class OrganizationMembersSchema(ma.SQLAlchemyAutoSchema):
+    role = fields.Enum(OrganizationRoles)
+
     class Meta:
-        model = OrganizationRoles
+        model = OrganizationMembers
+        include_fk = True
 
 
-class RolesSchema(ma.SQLAlchemyAutoSchema):
+class UsersSchema(ma.SQLAlchemyAutoSchema):
+    role = fields.Enum(Roles)
+    password_hash = fields.String(required=False)
+    password = fields.String(required=False, load_only=True, validate=password_check)
+
     class Meta:
-        model = Roles
+        model = Users
+        include_fk = True
+
+    @validates_schema
+    def validate_password_fields(self, data, **kwargs):
+        password = data.get('password')
+        password_hash = data.get('password_hash')
+
+        # if password and password_hash:
+        #     raise ValidationError("Both password and password_hash cannot be present simultaneously")
+
+        if not password and not password_hash:
+            raise ValidationError("Missing 'password' required field")
+            # raise ValidationError("Either 'password' or 'password_hash' field is required")
 
 
 class OrganizationsSchema(ma.SQLAlchemyAutoSchema):
@@ -29,40 +56,33 @@ class OrganizationsSchema(ma.SQLAlchemyAutoSchema):
         model = Organizations
 
 
-class UsersSchema(ma.SQLAlchemyAutoSchema):
-    class Meta:
-        model = Users
-        include_fk = True
-
-    # role = ma.Nested(RolesSchema)
-    # user_role = ma.HyperlinkRelated('roles.get_role_by_id', 'role_id')
-    # role_id = ma.auto_field()
-
-
 class ReportsSchema(ma.SQLAlchemyAutoSchema):
+    type = fields.Enum(ReportTypes)
+
     class Meta:
         model = Reports
-
-    user_id = ma.auto_field()
-    organization_id = ma.auto_field()
+        include_fk = True
 
 
 class DatasourcesSchema(ma.SQLAlchemyAutoSchema):
+    type = fields.Enum(DatasourceTypes)
+
     class Meta:
         model = Datasources
+        include_fk = True
 
-    user_id = ma.auto_field()
-    organization_id = ma.auto_field()
+    creator_id = ma.auto_field()
 
 
 class FileDatasourcesSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = FileDatasources
-
-    datasource_id = ma.auto_field()
+        include_fk = True
 
 
 class VisualizationsSchema(ma.SQLAlchemyAutoSchema):
+    type = fields.Enum(VisualizationTypes)
+
     class Meta:
         model = Visualizations
         include_fk = True
@@ -73,20 +93,16 @@ class DataVisualizationsSchema(ma.SQLAlchemyAutoSchema):
         model = DataVisualizations
         include_fk = True
 
-    visualization_id = ma.auto_field()
-
 
 class FileVisualizationsSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = FileVisualizations
         include_fk = True
 
-    visualization_id = ma.auto_field()
-
 
 class AnalyzesSchema(ma.SQLAlchemyAutoSchema):
+    status = fields.Enum(AnalyzeStatus)
+
     class Meta:
         model = Analyzes
         include_fk = True
-
-    report_id = ma.auto_field()

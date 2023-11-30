@@ -1,4 +1,6 @@
 from sqlalchemy import (
+    ForeignKeyConstraint,
+    Index,
     Table,
     Column,
     ForeignKey,
@@ -9,15 +11,26 @@ from sqlalchemy import (
     DateTime,
     Boolean,
     Enum,
-    inspect,
+    UniqueConstraint,
 )
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
-from app.logger import logger
-from app.db import db, Base
+from app.db import db
 from typing import List
 import enum
+
+
+class Roles(enum.Enum):
+    ADMIN = "Admin"
+    USER = "User"
+
+
+class OrganizationRoles(enum.Enum):
+    OWNER = "Owner"
+    ADMIN = "Admin"
+    EDITOR = "EDITOR"
+    VIEWER = "Viewer"
 
 
 class DatasourceTypes(enum.Enum):
@@ -50,10 +63,12 @@ class AnalyzeStatus(enum.Enum):
 class GenericModel(db.Model):
     __abstract__ = True
 
-    id: Mapped[int] = mapped_column("id", Integer, primary_key=True)
+    id: Mapped[int] = mapped_column("id", Integer, primary_key=True, nullable=False)
 
     created_date: Mapped[datetime] = mapped_column(
-        "created_date", DateTime, default=datetime.utcnow
+        "created_date",
+        DateTime,
+        default=datetime.utcnow,
     )
 
     updated_date: Mapped[datetime] = mapped_column(
@@ -65,18 +80,6 @@ class GenericModel(db.Model):
     )
 
     soft_deleted: Mapped[bool] = mapped_column("soft_deleted", Boolean, default=False)
-
-    @classmethod
-    def _get_unique_fields(cls, model_dict: dict):
-        unique_fields = {}
-        for column in inspect(cls).columns:
-            if column.unique:
-                column_name = str(column).split(".")[1]  # Extracting column name
-                if column_name in model_dict:
-                    unique_fields[column_name] = model_dict[column_name]
-
-        logger.info(f"{cls.__name__[:-1]} unique fields: {unique_fields}")
-        return unique_fields
 
     updatable_fields: list = []
 
@@ -90,33 +93,90 @@ class GenericModel(db.Model):
         return model_name
 
     def _get_generic_repr(self):
-        return f"created_date={self.created_date},updated_date={self.updated_date},deleted_date={self.deleted_date},soft_deleted={self.soft_deleted}"
+        return f"created_date='{self.created_date}',updated_date='{self.updated_date}',deleted_date='{self.deleted_date}',soft_deleted='{self.soft_deleted}'"
 
 
-organization_members = Table(
-    "organization_members",
-    Base.metadata,
-    Column("user_id", ForeignKey("users.id")),
-    Column("organization_id", ForeignKey("organizations.id")),
-    Column("organization_role_id", ForeignKey("organization_roles.id")),
-    Column("active", Boolean, default=True, nullable=False),
-)
+class OrganizationMembers(GenericModel):
+    __tablename__ = "organization_members"
 
+    user_id: Mapped[int] = mapped_column(
+        "user_id",
+        ForeignKey("users.id"),
+        nullable=False,
+    )
+    organization_id: Mapped[int] = mapped_column(
+        "organization_id",
+        ForeignKey("organizations.id"),
+        nullable=False,
+    )
+    role: Mapped[OrganizationRoles] = mapped_column(
+        "role",
+        Enum(OrganizationRoles),
+        default=OrganizationRoles.VIEWER,
+        nullable=False,
+    )
+    active: Mapped[bool] = mapped_column(
+        "active", Boolean, default=True, nullable=False
+    )
 
-class Roles(GenericModel):
-    __tablename__ = "roles"
-
-    name: Mapped[str] = mapped_column("name", String(50), unique=True, nullable=False)
-    description: Mapped[str] = mapped_column("description", Text, nullable=False)
-    users: Mapped[List["Users"]] = relationship(back_populates="role")
+    user: Mapped["Users"] = relationship("Users", back_populates="memberships")
+    organization: Mapped["Organizations"] = relationship(
+        "Organizations", back_populates="memberships"
+    )
+    reports: Mapped[List["Reports"]] = relationship("Reports", back_populates="creator")
+    datasources: Mapped[List["Datasources"]] = relationship(
+        "Datasources", back_populates="creator"
+    )
 
     updatable_fields = [
-        "name",
-        "description",
+        "organization_id",
+        "role",
+        "active",
     ]
 
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id",
+            "organization_id",
+            name="organization_member_unique_user_id_and_organization_id_combination_constraint",
+        ),
+        ForeignKeyConstraint(
+            ["user_id"], ["users.id"], name="organization_member_user_id_constraint"
+        ),
+        ForeignKeyConstraint(
+            ["organization_id"],
+            ["organizations.id"],
+            name="organization_member_organization_id_constraint",
+        ),
+        # Index for the combination (optional but can improve performance for queries using this combination)
+        Index(
+            "unique_combination_index",
+            "organization_id",
+            "organization_id",
+            "id",
+        ),
+    )
+
     def __repr__(self):
-        return f"<Role(id={self.id},name={self.name},description={self.description},{self._get_generic_repr()})>"
+        return f"<OrganizationMembers(id='{self.id}',user_id='{self.user_id}',organization_id='{self.organization_id}',role='{self.role}',active='{self.active}',{self._get_generic_repr()})>"
+
+
+# organization_members = Table(
+#     "organization_members",
+#     Base.metadata,
+#     Column("id", Integer, primary_key=True, nullable=False),
+#     Column("user_id", ForeignKey("users.id")),
+#     Column("organization_id", ForeignKey("organizations.id")),
+#     Column(
+#         "role",
+#         Enum(OrganizationRoles),
+#         default=OrganizationRoles.VIEWER,
+#         nullable=False,
+#     ),
+#     Column("active", Boolean, default=True, nullable=False),
+#     Column("created_date", DateTime, default=datetime.utcnow, nullable=False),
+#     Column("updated_date", DateTime, default=True, nullable=True),
+# )
 
 
 class Users(GenericModel):
@@ -125,14 +185,14 @@ class Users(GenericModel):
     first_name: Mapped[str] = mapped_column("first_name", String(100), nullable=False)
     second_name: Mapped[str] = mapped_column("second_name", String(100), nullable=False)
     email: Mapped[str] = mapped_column(
-        "email", String(255), unique=True, nullable=False
+        "email", String(250), unique=True, nullable=False
     )
     phone: Mapped[str] = mapped_column("phone", String(18), unique=True, nullable=False)
     username: Mapped[str] = mapped_column(
         "username", String(50), unique=True, nullable=False
     )
     password_hash: Mapped[str] = mapped_column(
-        "password_hash", String(50), nullable=False
+        "password_hash", String(200), nullable=False
     )
     active: Mapped[bool] = mapped_column(
         "active", Boolean, default=True, nullable=False
@@ -140,21 +200,23 @@ class Users(GenericModel):
     last_login_date: Mapped[datetime] = mapped_column(
         "last_login_date", DateTime, nullable=True
     )
-    role_id: Mapped[int] = mapped_column(
-        "role_id", Integer, ForeignKey("roles.id"), nullable=False
-    )
-    role: Mapped["Roles"] = relationship("Roles", back_populates="users")
-
-    organizations: Mapped[List["Organizations"]] = relationship(
-        secondary=organization_members,
-        back_populates="members",
-        cascade="save-update, merge, delete",
+    role: Mapped[Roles] = mapped_column(
+        "role", Enum(Roles), default=Roles.USER, nullable=False
     )
 
-    reports: Mapped[List["Reports"]] = relationship("Reports", back_populates="user")
-    datasources: Mapped[List["Datasources"]] = relationship(
-        "Datasources", back_populates="user"
+    # organizations: Mapped[List["Organizations"]] = relationship(
+    #     secondary=organization_members,
+    #     back_populates="members",
+    #     cascade="save-update, merge, delete",
+    # )
+    memberships: Mapped[List["OrganizationMembers"]] = relationship(
+        "OrganizationMembers", back_populates="user"
     )
+    # organizations: Mapped[List["Organizations"]] = relationship(
+    #     secondary="organization_members",
+    #     back_populates="members",
+    #     cascade="save-update, merge, delete",
+    # )
 
     updatable_fields = [
         "first_name",
@@ -164,7 +226,7 @@ class Users(GenericModel):
         "username",
         "password_hash",
         "active",
-        "role_id",
+        "role",
     ]
 
     @property
@@ -179,17 +241,7 @@ class Users(GenericModel):
         return check_password_hash(self.password_hash, password)
 
     def __repr__(self):
-        return f"<User(id={self.id},first_name={self.first_name},second_name={self.second_name},email={self.email},phone={self.phone},username={self.username},role_id={self.role_id},{self._get_generic_repr()})>"
-
-
-class OrganizationRoles(GenericModel):
-    __tablename__ = "organization_roles"
-
-    name: Mapped[str] = mapped_column("name", String(50), unique=True, nullable=False)
-    description: Mapped[str] = mapped_column("description", Text, nullable=False)
-
-    def __repr__(self):
-        return f"<OrganizationRole(id={self.id},name={self.name},description={self.description},{self._get_generic_repr()})>"
+        return f"<User(id='{self.id}',first_name='{self.first_name}',second_name='{self.second_name}',email='{self.email}',phone='{self.phone}',username='{self.username}',role='{self.role}',{self._get_generic_repr()})>"
 
 
 class Organizations(GenericModel):
@@ -199,17 +251,25 @@ class Organizations(GenericModel):
     description = mapped_column("description", Text, nullable=False)
     email = mapped_column("email", String(255), unique=True, nullable=False)
     phone = mapped_column("phone", String(18), unique=True)
-    members: Mapped[List[Users]] = relationship(
-        secondary=organization_members,
-        back_populates="organizations",
-        cascade="save-update, merge, delete",
+    memberships: Mapped[List["OrganizationMembers"]] = relationship(
+        "OrganizationMembers", back_populates="organization"
     )
-    reports: Mapped[List["Reports"]] = relationship(
-        "Reports", back_populates="organization"
-    )
-    datasources: Mapped[List["Datasources"]] = relationship(
-        "Datasources", back_populates="organization"
-    )
+    # members: Mapped[List[Users]] = relationship(
+    #     secondary="organization_members",
+    #     back_populates="organizations",
+    #     cascade="save-update, merge, delete",
+    # )
+    # members: Mapped[List[Users]] = relationship(
+    #     secondary=organization_members,
+    #     back_populates="organizations",
+    #     cascade="save-update, merge, delete",
+    # )
+    # reports: Mapped[List["Reports"]] = relationship(
+    #     "Reports", back_populates="organization"
+    # )
+    # datasources: Mapped[List["Datasources"]] = relationship(
+    #     "Datasources", back_populates="organization"
+    # )
 
     updatable_fields = [
         "name",
@@ -219,7 +279,7 @@ class Organizations(GenericModel):
     ]
 
     def __repr__(self):
-        return f"<Organization(id={self.id},name={self.name},description={self.description},email={self.email},phone={self.phone},{self._get_generic_repr()})>"
+        return f"<Organization(id='{self.id}',name='{self.name}',description='{self.description}',email='{self.email}',phone='{self.phone}',{self._get_generic_repr()})>"
 
 
 class Datasources(GenericModel):
@@ -229,13 +289,11 @@ class Datasources(GenericModel):
     type: Mapped[DatasourceTypes] = mapped_column(
         "type", Enum(DatasourceTypes), nullable=False
     )
-    user_id: Mapped[int] = mapped_column("user_id", Integer, ForeignKey("users.id"))
-    user: Mapped["Users"] = relationship("Users", back_populates="datasources")
-    organization_id: Mapped[int] = mapped_column(
-        "organization_id", Integer, ForeignKey("organizations.id"), nullable=False
+    creator_id: Mapped[int] = mapped_column(
+        "creator_id", Integer, ForeignKey("organization_members.id")
     )
-    organization: Mapped["Organizations"] = relationship(
-        "Organizations", back_populates="datasources"
+    creator: Mapped[OrganizationMembers] = relationship(
+        OrganizationMembers, back_populates="datasources"
     )
 
     updatable_fields = [
@@ -244,13 +302,12 @@ class Datasources(GenericModel):
     ]
 
     def __repr__(self):
-        return f"<Report(id={self.id},name={self.name},user_id={self.user_id},organization_id={self.organization_id},{self._get_generic_repr()})>"
+        return f"<Report(id='{self.id}',name='{self.name}',creator_id='{self.creator_id}',{self._get_generic_repr()})>"
 
 
 class FileDatasources(GenericModel):
     __tablename__ = "file_datasources"
 
-    id: Mapped[int] = mapped_column("id", Integer, primary_key=True)
     name: Mapped[str] = mapped_column("name", String(100), nullable=False)
     file_path: Mapped[str] = mapped_column(
         "file_path", String(255), unique=True, nullable=False
@@ -266,7 +323,7 @@ class FileDatasources(GenericModel):
     ]
 
     def __repr__(self):
-        return f"<File(id={self.id},name={self.name},user_id={self.user_id},organization_id={self.organization_id},file_path={self.file_path},{self._get_generic_repr()})>"
+        return f"<File(id='{self.id}',name='{self.name}',file_path='{self.file_path}',datasource_id='{self.datasource_id}',{self._get_generic_repr()})>"
 
 
 class Reports(GenericModel):
@@ -276,14 +333,13 @@ class Reports(GenericModel):
     type: Mapped[ReportTypes] = mapped_column(
         "type", Enum(ReportTypes), default=ReportTypes.GENERIC, nullable=False
     )
-    user_id: Mapped[int] = mapped_column("user_id", Integer, ForeignKey("users.id"))
-    user: Mapped["Users"] = relationship("Users", back_populates="reports")
-    organization_id: Mapped[int] = mapped_column(
-        "organization_id", Integer, ForeignKey("organizations.id"), nullable=False
+    creator_id: Mapped[int] = mapped_column(
+        "creator_id", ForeignKey("organization_members.id"), nullable=False
     )
-    organization: Mapped["Organizations"] = relationship(
-        "Organizations", back_populates="reports"
+    creator: Mapped[OrganizationMembers] = relationship(
+        OrganizationMembers, back_populates="reports"
     )
+
     visualizations: Mapped[List["Visualizations"]] = relationship(
         "Visualizations", back_populates="report"
     )
@@ -294,7 +350,7 @@ class Reports(GenericModel):
     ]
 
     def __repr__(self):
-        return f"<Report(id={self.id},name={self.name},user_id={self.user_id},organization_id={self.organization_id},{self._get_generic_repr()})>"
+        return f"<Report(id='{self.id}',name='{self.name}',type='{self.type}',creator_id='{self.creator_id}',{self._get_generic_repr()})>"
 
 
 class Visualizations(GenericModel):
@@ -315,7 +371,7 @@ class Visualizations(GenericModel):
     ]
 
     def __repr__(self) -> str:
-        return f"Visualization(id={self.id},name={self.name},report_id={self.report_id},{self._get_generic_repr()})"
+        return f"Visualization(id='{self.id}',name='{self.name}',report_id='{self.report_id}',{self._get_generic_repr()})"
 
 
 class FileVisualizations(GenericModel):
@@ -334,14 +390,13 @@ class FileVisualizations(GenericModel):
     ]
 
     def __repr__(self) -> str:
-        return f"Visualization(id={self.id},name={self.name},file_path={self.file_path},visualization_id={self.visualization_id},{self._get_generic_repr()})"
+        return f"Visualization(id='{self.id}',name='{self.name}',file_path='{self.file_path}',visualization_id='{self.visualization_id}',{self._get_generic_repr()})"
 
 
 class DataVisualizations(GenericModel):
     __tablename__ = "data_visualizations"
 
     name: Mapped[str] = mapped_column("name", String(50), nullable=False)
-    type: Mapped[str] = mapped_column("type", Text, nullable=False)
     file_path: Mapped[str] = mapped_column("file_path", String(255), nullable=False)
     data_points: Mapped[str] = mapped_column("data_points", Text, nullable=False)
     visualization_id: Mapped[int] = mapped_column(
@@ -357,7 +412,7 @@ class DataVisualizations(GenericModel):
     ]
 
     def __repr__(self) -> str:
-        return f"Visualization(id={self.id},name={self.name},file_path={self.file_path},visualization_id={self.visualization_id},{self._get_generic_repr()})"
+        return f"Visualization(id='{self.id}',name='{self.name}',file_path='{self.file_path}',visualization_id='{self.visualization_id}',{self._get_generic_repr()})"
 
 
 class Analyzes(GenericModel):
@@ -396,4 +451,4 @@ class Analyzes(GenericModel):
     ]
 
     def __repr__(self):
-        return f"<Analyze(id={self.id},name={self.name},support={self.support},lift={self.lift},confidence={self.confidence},rules_length={self.rules_length},report_id={self.report_id},{self._get_generic_repr()})>"
+        return f"<Analyze(id='{self.id}',name='{self.name}',support='{self.support}',lift='{self.lift}',confidence='{self.confidence}',rules_length='{self.rules_length}',report_id='{self.report_id}',{self._get_generic_repr()})>"
