@@ -5,8 +5,6 @@ from typing import List
 import pytest
 import os
 
-from app.logger import logger
-
 
 os.environ["APP_DOTENV_PATH"] = ".env.test"
 
@@ -42,28 +40,8 @@ def client(app: Flask):
 
 
 @pytest.fixture(scope="session")
-def create_roles(db: SQLAlchemy):
-    from app.models import Roles
-
-    user_role = Roles()
-    user_role.name = "User"
-    user_role.description = "Roles for users"
-
-    admin_role = Roles()
-    admin_role.name = "Admin"
-    admin_role.description = "Roles for admins"
-
-    db.session.add(user_role)
-    db.session.add(admin_role)
-
-    db.session.commit()
-
-    return [user_role, admin_role]
-
-
-@pytest.fixture(scope="session")
 def create_users(db: SQLAlchemy):
-    from app.models import Users
+    from app.models import Users, Roles
 
     user1 = Users()
     user1.first_name = "John"
@@ -73,7 +51,7 @@ def create_users(db: SQLAlchemy):
     user1.email = "john.doe@gmail.com"
     user1.phone = "+3801234567"
     user1.password = "s3cr3TP@@$w0Rd"
-    user1.role_id = 1
+    user1.role = Roles.USER.name
 
     user2 = Users()
     user2.first_name = "John"
@@ -83,7 +61,7 @@ def create_users(db: SQLAlchemy):
     user2.email = "john.smith@gmail.com"
     user2.phone = "+380123456780123"
     user2.password = "Rx123@@$w0Rd"
-    user2.role_id = 2
+    user2.role = Roles.ADMIN.name
 
     db.session.add(user1)
     db.session.add(user2)
@@ -108,6 +86,7 @@ def create_organizations(db: SQLAlchemy):
     org2.description = "Enter organization for new businesses"
     org2.email = "support@enter.com"
     org2.phone = "+123123123124"
+
     db.session.add(org1)
     db.session.add(org2)
 
@@ -116,13 +95,100 @@ def create_organizations(db: SQLAlchemy):
     return [org1, org2]
 
 
+@pytest.fixture(scope="session")
+def create_organization_members(db: SQLAlchemy):
+    from app.models import OrganizationMembers, OrganizationRoles
+
+    member1 = OrganizationMembers()
+    member1.user_id = 1
+    member1.organization_id = 1
+    member1.active = True
+    member1.role = OrganizationRoles.OWNER
+
+    member2 = OrganizationMembers()
+    member2.user_id = 2
+    member2.organization_id = 1
+    member2.active = True
+    member2.role = OrganizationRoles.ADMIN
+
+    db.session.add(member1)
+    db.session.add(member2)
+
+    db.session.commit()
+
+    return [member1, member2]
+
+
+@pytest.fixture(scope="session")
+def create_datasources(db: SQLAlchemy):
+    from app.models import Datasources, DatasourceTypes
+
+    datasource1 = Datasources()
+    datasource1.name = "Transactions Datasource"
+    datasource1.type = DatasourceTypes.CSV
+    datasource1.creator_id = 1
+
+    db.session.add(datasource1)
+
+    db.session.commit()
+
+    return [datasource1]
+
+
+@pytest.fixture(scope="session")
+def create_reports(db: SQLAlchemy):
+    from app.models import Reports, ReportTypes
+
+    report1 = Reports()
+    report1.name = "Transactions Report"
+    report1.type = ReportTypes.GENERIC
+    report1.creator_id = 1
+
+    db.session.add(report1)
+
+    db.session.commit()
+
+    return [report1]
+
+
+@pytest.fixture(scope="session")
+def create_visualizations(db: SQLAlchemy):
+    from app.models import Visualizations, VisualizationTypes
+
+    visualization1 = Visualizations()
+    visualization1.name = "Transactions visualization 1"
+    visualization1.type = VisualizationTypes.DATA_POINTS
+    visualization1.report_id = 1
+
+    visualization2 = Visualizations()
+    visualization2.name = "Transactions visualization 2"
+    visualization2.type = VisualizationTypes.FILE
+    visualization2.report_id = 1
+
+    db.session.add(visualization1)
+    db.session.add(visualization2)
+
+    db.session.commit()
+
+    return [visualization1]
+
+
 @pytest.fixture(scope="session", autouse=True)
-def create_models(create_roles, create_users, create_organizations):
+def create_models(
+    create_users,
+    create_organizations,
+    create_organization_members,
+    create_datasources,
+    create_reports,
+    create_visualizations,
+):
     pass
 
 
 @pytest.fixture(scope="session", autouse=True)
-def login(create_users, client: FlaskClient):
+def login(client: FlaskClient):
+    from app.logger import logger
+
     user = {"username": "johndoe", "password": "s3cr3TP@@$w0Rd"}
     res = client.post(
         "/api/v1/users/auth/login",
@@ -131,22 +197,6 @@ def login(create_users, client: FlaskClient):
     logger.info("Login response data:")
     logger.info(res.json)
     logger.info(res.headers)
-
-
-@pytest.fixture(scope="module")
-def roles_schema():
-    from app.schemas import RolesSchema
-
-    roles_schema = RolesSchema()
-    return roles_schema
-
-
-@pytest.fixture(scope="module")
-def roles_service():
-    from app.services import RolesService
-
-    roles_service = RolesService()
-    return roles_service
 
 
 @pytest.fixture(scope="module")
@@ -179,3 +229,51 @@ def organizations_service():
 
     organizations_service = OrganizationsService()
     return organizations_service
+
+
+@pytest.fixture(scope="module")
+def organization_members_schema():
+    from app.schemas import OrganizationMembersSchema
+
+    organization_members_schema = OrganizationMembersSchema()
+    return organization_members_schema
+
+
+@pytest.fixture(scope="module")
+def organization_members_service():
+    from app.services import OrganizationMembersService
+
+    organization_members_service = OrganizationMembersService()
+    return organization_members_service
+
+
+@pytest.fixture(scope="module")
+def datasources_schema():
+    from app.schemas import DatasourcesSchema
+
+    datasources_schema = DatasourcesSchema()
+    return datasources_schema
+
+
+@pytest.fixture(scope="module")
+def datasources_service():
+    from app.services import DatasourcesService
+
+    datasources_service = DatasourcesService()
+    return datasources_service
+
+
+@pytest.fixture(scope="module")
+def reports_schema():
+    from app.schemas import ReportsSchema
+
+    reports_schema = ReportsSchema()
+    return reports_schema
+
+
+@pytest.fixture(scope="module")
+def reports_service():
+    from app.services import ReportsService
+
+    reports_service = ReportsService()
+    return reports_service

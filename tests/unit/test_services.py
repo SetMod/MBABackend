@@ -2,170 +2,16 @@ from datetime import datetime
 from typing import List
 import pytest
 from app.exceptions import CustomBadRequest, CustomNotFound
-from app.models import Datasources, Organizations, Reports, Roles, Users
-from app.services import RolesService, UsersService
-
-
-class TestRolesService:
-    def test_get_all(self, roles_service: RolesService):
-        roles = roles_service.get_all()
-
-        assert isinstance(roles, list)
-        assert len(roles) == 2
-
-        roles = roles_service.to_json(roles)
-        role_dict = roles[0]
-
-        assert isinstance(roles[0], dict)
-        assert "id" in role_dict
-        assert "name" in role_dict
-        assert "description" in role_dict
-        assert "updated_date" in role_dict
-        assert "created_date" in role_dict
-        assert "deleted_date" in role_dict
-        assert "soft_deleted" in role_dict
-
-    def test_get_by_id(self, roles_service: RolesService):
-        role = roles_service.get_by_id(1)
-
-        assert isinstance(role, Roles)
-
-        role = roles_service.to_json(role)
-
-        assert isinstance(role, dict)
-        assert "id" in role
-        assert "name" in role
-        assert "description" in role
-        assert "updated_date" in role
-        assert "created_date" in role
-        assert "deleted_date" in role
-        assert "soft_deleted" in role
-
-    def test_get_by_non_existing_id(self, roles_service: RolesService):
-        with pytest.raises(CustomNotFound):
-            role = roles_service.get_by_id(10)
-
-    def test_get_by_field(self, roles_service: RolesService):
-        role = roles_service.get_by_field("name", "Admin")
-
-        assert isinstance(role, Roles)
-
-        role = roles_service.to_json(role)
-
-        assert isinstance(role, dict)
-        assert "id" in role
-        assert role["name"] == "Admin"
-
-    def test_get_by_non_existing_field(self, roles_service: RolesService):
-        with pytest.raises(CustomBadRequest):
-            role = roles_service.get_by_field("names", "Admin")
-
-    def test_get_by_non_existing_field_value(self, roles_service: RolesService):
-        with pytest.raises(CustomNotFound):
-            role = roles_service.get_by_field("name", "Administrators")
-
-    def test_get_by_fields(self, roles_service: RolesService):
-        roles: List[Roles] = roles_service.get_by_fields(
-            {"soft_deleted": False}, many=True
-        )
-        roles = roles_service.to_json(roles)
-
-        assert isinstance(roles, list)
-        assert isinstance(roles[0], dict)
-        assert "id" in roles[0]
-        assert "name" in roles[0]
-        assert "description" in roles[0]
-        assert roles[0]["soft_deleted"] == False
-
-    def test_get_all_users(self, roles_service: RolesService):
-        users: List[Users] = roles_service.get_all_users(1)
-
-        assert isinstance(users, list)
-        assert isinstance(users[0], Users)
-        assert users[0].role_id == 1
-
-    def test_create(self, roles_service: RolesService):
-        editor_role = Roles(name="Editor", description="Role for editors")
-        editor_role_dict = roles_service.to_json(editor_role)
-        new_role = roles_service.create(editor_role_dict)
-        new_role = roles_service.to_json(new_role)
-
-        assert isinstance(new_role, dict)
-        assert "id" in new_role
-        assert "name" in new_role
-        assert "description" in new_role
-        assert new_role["name"] == "Editor"
-
-    def test_create_from_dict(self, roles_service: RolesService):
-        owner_role_dict = {"name": "Owner", "description": "Role for owners"}
-        new_role = roles_service.create(owner_role_dict)
-
-        assert isinstance(new_role, Roles)
-
-        new_role = roles_service.to_json(new_role)
-
-        assert isinstance(new_role, dict)
-        assert "id" in new_role
-        assert "name" in new_role
-        assert "description" in new_role
-        assert new_role["name"] == "Owner"
-
-    def test_map_model(self, roles_service: RolesService):
-        editor_role_dict = {"name": "Owner", "description": "Role for owners"}
-        editor_role = roles_service.map_model(editor_role_dict)
-
-        assert isinstance(editor_role, Roles)
-        assert editor_role.name == "Owner"
-        assert editor_role.description == "Role for owners"
-
-    def test_map_bad_model(self, roles_service: RolesService):
-        editor_role_dict = {"names": "Owner", "descriptions": "Role for owners"}
-
-        with pytest.raises(CustomBadRequest):
-            editor_role = roles_service.map_model(editor_role_dict)
-
-    def test_create_existing_role(self, roles_service: RolesService):
-        editor_role_dict = {"name": "Owner", "description": "Role for owners"}
-
-        with pytest.raises(CustomBadRequest):
-            new_role = roles_service.create(editor_role_dict)
-
-    def test_update(self, roles_service: RolesService):
-        creator_role = Roles(name="Creator", description="Role for creators")
-        creator_role_dict = roles_service.to_json(creator_role)
-
-        updated_role: Roles = roles_service.update(4, creator_role_dict)
-        updated_role = roles_service.to_json(updated_role)
-
-        assert isinstance(updated_role, dict)
-        assert "id" in updated_role
-        assert updated_role["id"] == 4
-        assert "name" in updated_role
-        assert "description" in updated_role
-        assert updated_role["name"] == "Creator"
-
-    def test_update_existing_role(self, roles_service: RolesService):
-        creator_role_dict = {"name": "Creator", "description": "Role for creators"}
-
-        with pytest.raises(CustomBadRequest):
-            updated_role = roles_service.update(3, creator_role_dict)
-
-    def test_soft_delete(self, roles_service: RolesService):
-        role: Roles = roles_service.soft_delete(4)
-
-        assert role.id == 4
-        assert role.name == "Creator"
-        assert role.soft_deleted == True
-        assert isinstance(role.deleted_date, datetime)
-
-    def test_delete(self, roles_service: RolesService):
-        role: Roles = roles_service.delete(4)
-
-        assert role.id == 4
-        assert role.name == "Creator"
-
-        with pytest.raises(CustomNotFound):
-            existing_role = roles_service.get_by_id(4)
+from app.models import (
+    Datasources,
+    OrganizationMembers,
+    OrganizationRoles,
+    Organizations,
+    Reports,
+    Roles,
+    Users,
+)
+from app.services import OrganizationMembersService, OrganizationsService, UsersService
 
 
 class TestUsersService:
@@ -173,7 +19,7 @@ class TestUsersService:
         users: List[Users] = users_service.get_all()
 
         assert isinstance(users, list)
-        assert len(users) == 2
+        assert len(users) > 1
 
         users_list = users_service.to_json(users)
         user_dict = users_list[0]
@@ -185,6 +31,7 @@ class TestUsersService:
         assert "username" in user_dict
         assert "email" in user_dict
         assert "phone" in user_dict
+        assert "role" in user_dict
         assert "active" in user_dict
         assert "updated_date" in user_dict
         assert "created_date" in user_dict
@@ -240,28 +87,23 @@ class TestUsersService:
         assert "username" in users_list[0]
         assert users_list[0]["soft_deleted"] == False
 
-    def test_get_role(self, users_service: UsersService):
-        role: Roles = users_service.get_role(1)
-
-        assert isinstance(role, Roles)
-
     def test_get_all_organizations(self, users_service: UsersService):
         organizations: List[Organizations] = users_service.get_all_organizations(1)
 
         assert isinstance(organizations, list)
-        assert len(organizations) == 0
+        assert len(organizations) == 1
 
     def test_get_all_reports(self, users_service: UsersService):
         reports: List[Reports] = users_service.get_all_reports(1)
 
         assert isinstance(reports, list)
-        assert len(reports) == 0
+        assert len(reports) >= 1
 
     def test_get_all_datasources(self, users_service: UsersService):
         datasources: List[Datasources] = users_service.get_all_datasources(1)
 
         assert isinstance(datasources, list)
-        assert len(datasources) == 0
+        assert len(datasources) >= 1
 
     def test_create(self, users_service: UsersService):
         user = {
@@ -272,7 +114,7 @@ class TestUsersService:
             "email": "bob.ross@gmail.com",
             "phone": "+123789123978",
             "password": "jkZJK#@kn1x23",
-            "role_id": 1,
+            "role": Roles.USER.name,
         }
         new_user: Users = users_service.create(user)
 
@@ -282,7 +124,7 @@ class TestUsersService:
         assert new_user.second_name == "Ross"
         assert new_user.username == "bobross"
         assert new_user.active == True
-        assert new_user.role_id == 1
+        assert new_user.role == Roles.USER
 
     def test_map_model(self, users_service: UsersService):
         user = {
@@ -292,8 +134,8 @@ class TestUsersService:
             "active": True,
             "email": "bob.ross@gmail.com",
             "phone": "+123789123978",
-            "password_hash": "jkjl1j123jklKJklnzx12",
-            "role_id": 1,
+            "password": "jkF123jkl#z",
+            "role": Roles.ADMIN.name,
         }
         user = users_service.map_model(user)
 
@@ -310,7 +152,7 @@ class TestUsersService:
             "email": "bob.ross@gmail.com",
             "phone": "+123789123978",
             "password": "jkZJK#@kn1x23",
-            "role_id": 1,
+            "role": Roles.ADMIN.name,
         }
         with pytest.raises(CustomBadRequest):
             new_user: Users = users_service.create(user)
@@ -345,3 +187,356 @@ class TestUsersService:
 
         with pytest.raises(CustomNotFound):
             user = users_service.get_by_id(4)
+
+
+class TestOrganizationsService:
+    def test_get_all(self, organizations_service: OrganizationsService):
+        organizations: List[Organizations] = organizations_service.get_all()
+
+        assert isinstance(organizations, list)
+        assert len(organizations) == 2
+
+        organizations_list = organizations_service.to_json(organizations)
+        organization_dict = organizations_list[0]
+
+        assert isinstance(organization_dict, dict)
+        assert "id" in organization_dict
+        assert "name" in organization_dict
+        assert "description" in organization_dict
+        assert "email" in organization_dict
+        assert "phone" in organization_dict
+        assert "updated_date" in organization_dict
+        assert "created_date" in organization_dict
+        assert "deleted_date" in organization_dict
+        assert "soft_deleted" in organization_dict
+
+    def test_get_by_id(self, organizations_service: OrganizationsService):
+        organization = organizations_service.get_by_id(1)
+
+        assert isinstance(organization, Organizations)
+
+        organization_dict = organizations_service.to_json(organization)
+
+        assert isinstance(organization_dict, dict)
+        assert "id" in organization_dict
+        assert "name" in organization_dict
+
+    def test_get_by_non_existing_id(self, organizations_service: OrganizationsService):
+        with pytest.raises(CustomNotFound):
+            organization = organizations_service.get_by_id(10)
+
+    def test_get_by_field(self, organizations_service: OrganizationsService):
+        organization = organizations_service.get_by_field("name", "Enter")
+
+        assert isinstance(organization, Organizations)
+
+        organization_dict = organizations_service.to_json(organization)
+
+        assert isinstance(organization_dict, dict)
+        assert "id" in organization_dict
+        assert organization_dict["name"] == "Enter"
+
+    def test_get_by_non_existing_field(
+        self, organizations_service: OrganizationsService
+    ):
+        with pytest.raises(CustomBadRequest):
+            organization = organizations_service.get_by_field("names", "Admin")
+
+    def test_get_by_non_existing_field_value(
+        self, organizations_service: OrganizationsService
+    ):
+        with pytest.raises(CustomNotFound):
+            organization = organizations_service.get_by_field("name", "asdfasdfasdf")
+
+    def test_get_by_fields(self, organizations_service: OrganizationsService):
+        organizations: List[Organizations] = organizations_service.get_by_fields(
+            {"soft_deleted": False}, many=True
+        )
+        organizations_list = organizations_service.to_json(organizations)
+
+        assert isinstance(organizations_list, list)
+        assert isinstance(organizations_list[0], dict)
+        assert "id" in organizations_list[0]
+        assert "name" in organizations_list[0]
+        assert organizations_list[0]["soft_deleted"] == False
+
+    def test_get_all_members(self, organizations_service: OrganizationsService):
+        members: List[OrganizationMembers] = organizations_service.get_all_members(1)
+
+        assert isinstance(members, list)
+        assert len(members) >= 1
+
+    def test_get_all_reports(self, organizations_service: OrganizationsService):
+        reports: List[Reports] = organizations_service.get_all_reports(1)
+
+        assert isinstance(reports, list)
+        assert len(reports) >= 1
+
+    def test_get_all_datasources(self, organizations_service: OrganizationsService):
+        datasources: List[Datasources] = organizations_service.get_all_datasources(1)
+
+        assert isinstance(datasources, list)
+        assert len(datasources) >= 1
+
+    def test_create(self, organizations_service: OrganizationsService):
+        organization = {
+            "name": "Test",
+            "description": "Test description",
+            "email": "test@email.com",
+            "phone": "+1237891216456",
+        }
+        new_organization: Organizations = organizations_service.create(organization)
+
+        assert isinstance(new_organization, Organizations)
+        assert new_organization.id == 3
+        assert new_organization.name == "Test"
+        assert new_organization.description == "Test description"
+        assert new_organization.email == "test@email.com"
+        assert new_organization.phone == "+1237891216456"
+
+    def test_create_existing_organization(
+        self, organizations_service: OrganizationsService
+    ):
+        organization = {
+            "name": "Test",
+            "description": "Test description",
+            "email": "test@email.com",
+            "phone": "+1237891216456",
+        }
+        with pytest.raises(CustomBadRequest):
+            new_organization: Organizations = organizations_service.create(organization)
+
+    def test_update(self, organizations_service: OrganizationsService):
+        updated_organization_dict = {"name": "Test2"}
+        updated_organization: Organizations = organizations_service.update(
+            3, updated_organization_dict
+        )
+
+        assert isinstance(updated_organization, Organizations)
+        assert updated_organization.id == 3
+        assert updated_organization.name == "Test2"
+
+    def test_update_existing_organization(
+        self, organizations_service: OrganizationsService
+    ):
+        updated_organization_dict = {"name": "Test2"}
+
+        with pytest.raises(CustomBadRequest):
+            organization: Organizations = organizations_service.update(
+                3, updated_organization_dict
+            )
+
+    def test_soft_delete(self, organizations_service: OrganizationsService):
+        organization: Organizations = organizations_service.soft_delete(3)
+
+        assert organization.id == 3
+        assert organization.name == "Test2"
+        assert organization.soft_deleted == True
+        assert isinstance(organization.deleted_date, datetime)
+
+    def test_delete(self, organizations_service: OrganizationsService):
+        organization: Organizations = organizations_service.delete(3)
+
+        assert organization.id == 3
+        assert organization.name == "Test2"
+
+        with pytest.raises(CustomNotFound):
+            organization = organizations_service.get_by_id(4)
+
+
+class TestOrganizationMembersService:
+    def test_get_all(self, organization_members_service: OrganizationMembersService):
+        organization_members: List[
+            OrganizationMembers
+        ] = organization_members_service.get_all()
+
+        assert isinstance(organization_members, list)
+        assert len(organization_members) == 2
+
+        organization_members_list = organization_members_service.to_json(
+            organization_members
+        )
+        organization_member_dict = organization_members_list[0]
+
+        assert isinstance(organization_member_dict, dict)
+        assert "id" in organization_member_dict
+        assert "user_id" in organization_member_dict
+        assert "organization_id" in organization_member_dict
+        assert "active" in organization_member_dict
+        assert "role" in organization_member_dict
+        assert "updated_date" in organization_member_dict
+        assert "created_date" in organization_member_dict
+        assert "deleted_date" in organization_member_dict
+        assert "soft_deleted" in organization_member_dict
+
+    def test_get_by_id(self, organization_members_service: OrganizationMembersService):
+        organization_member = organization_members_service.get_by_id(1)
+
+        assert isinstance(organization_member, OrganizationMembers)
+
+        organization_member_dict = organization_members_service.to_json(
+            organization_member
+        )
+
+        assert isinstance(organization_member_dict, dict)
+        assert "id" in organization_member_dict
+        assert "user_id" in organization_member_dict
+        assert "organization_id" in organization_member_dict
+        assert "active" in organization_member_dict
+        assert "role" in organization_member_dict
+
+    def test_get_by_non_existing_id(
+        self, organization_members_service: OrganizationMembersService
+    ):
+        with pytest.raises(CustomNotFound):
+            organization_member = organization_members_service.get_by_id(10)
+
+    def test_get_by_field(
+        self, organization_members_service: OrganizationMembersService
+    ):
+        organization_member = organization_members_service.get_by_field("user_id", 1)
+
+        assert isinstance(organization_member, OrganizationMembers)
+
+        organization_member_dict = organization_members_service.to_json(
+            organization_member
+        )
+
+        assert isinstance(organization_member_dict, dict)
+        assert "id" in organization_member_dict
+
+    def test_get_by_non_existing_field(
+        self, organization_members_service: OrganizationMembersService
+    ):
+        with pytest.raises(CustomBadRequest):
+            organization_member = organization_members_service.get_by_field(
+                "names", "Admin"
+            )
+
+    def test_get_by_non_existing_field_value(
+        self, organization_members_service: OrganizationMembersService
+    ):
+        with pytest.raises(CustomNotFound):
+            organization_member = organization_members_service.get_by_field(
+                "user_id", 123
+            )
+
+    def test_get_by_fields(
+        self, organization_members_service: OrganizationMembersService
+    ):
+        organization_members: List[
+            OrganizationMembers
+        ] = organization_members_service.get_by_fields(
+            {"soft_deleted": False}, many=True
+        )
+        organization_members_list = organization_members_service.to_json(
+            organization_members
+        )
+
+        assert isinstance(organization_members_list, list)
+        assert isinstance(organization_members_list[0], dict)
+        assert "id" in organization_members_list[0]
+        assert organization_members_list[0]["soft_deleted"] == False
+
+    def test_get_user(self, organization_members_service: OrganizationMembersService):
+        user: Users = organization_members_service.get_user(1)
+
+        assert isinstance(user, Users)
+
+    def test_get_organization(
+        self, organization_members_service: OrganizationMembersService
+    ):
+        organization: Organizations = organization_members_service.get_organization(1)
+
+        assert isinstance(organization, Organizations)
+
+    def test_get_all_datasources(
+        self, organization_members_service: OrganizationMembersService
+    ):
+        datasources: List[
+            Datasources
+        ] = organization_members_service.get_all_datasources(1)
+
+        assert isinstance(datasources, list)
+        assert len(datasources) >= 1
+
+    def test_get_all_reports(
+        self, organization_members_service: OrganizationMembersService
+    ):
+        reports: List[Reports] = organization_members_service.get_all_reports(1)
+
+        assert isinstance(reports, list)
+        assert len(reports) >= 1
+
+    def test_create(self, organization_members_service: OrganizationMembersService):
+        organization_member = {
+            "user_id": 2,
+            "organization_id": 2,
+            "role": "OWNER",
+            "active": True,
+        }
+        new_organization_member: OrganizationMembers = (
+            organization_members_service.create(organization_member)
+        )
+
+        assert isinstance(new_organization_member, OrganizationMembers)
+        assert new_organization_member.id == 3
+        assert new_organization_member.user_id == 2
+        assert new_organization_member.organization_id == 2
+        assert new_organization_member.role == OrganizationRoles.OWNER
+        assert new_organization_member.active == True
+
+    def test_create_existing_organization_member(
+        self, organization_members_service: OrganizationMembersService
+    ):
+        organization_member = {
+            "user_id": 2,
+            "organization_id": 2,
+            "role": "OWNER",
+            "active": True,
+        }
+        with pytest.raises(CustomBadRequest):
+            new_organization_member: OrganizationMembers = (
+                organization_members_service.create(organization_member)
+            )
+
+    def test_update(self, organization_members_service: OrganizationMembersService):
+        updated_organization_member_dict = {"role": "ADMIN"}
+        updated_organization_member: OrganizationMembers = (
+            organization_members_service.update(3, updated_organization_member_dict)
+        )
+
+        assert isinstance(updated_organization_member, OrganizationMembers)
+        assert updated_organization_member.id == 3
+        assert updated_organization_member.role == OrganizationRoles.ADMIN
+
+    def test_update_existing_organization_member(
+        self, organization_members_service: OrganizationMembersService
+    ):
+        updated_organization_member_dict = {"role": "TEST"}
+
+        with pytest.raises(CustomBadRequest):
+            organization_member: OrganizationMembers = (
+                organization_members_service.update(3, updated_organization_member_dict)
+            )
+
+    def test_soft_delete(
+        self, organization_members_service: OrganizationMembersService
+    ):
+        organization_member: OrganizationMembers = (
+            organization_members_service.soft_delete(3)
+        )
+
+        assert organization_member.id == 3
+        assert organization_member.soft_deleted == True
+        assert isinstance(organization_member.deleted_date, datetime)
+
+    def test_delete(self, organization_members_service: OrganizationMembersService):
+        organization_member: OrganizationMembers = organization_members_service.delete(
+            3
+        )
+
+        assert organization_member.id == 3
+
+        with pytest.raises(CustomNotFound):
+            organization_member = organization_members_service.get_by_id(4)
