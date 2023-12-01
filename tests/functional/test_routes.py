@@ -93,6 +93,7 @@ class TestUsersRoute:
         user_id = 1
         response = client.get(f"{self.base_api}/{user_id}/organizations")
         organizations_list = response.json
+        logger.info(organizations_list)
 
         assert isinstance(organizations_list, list)
 
@@ -100,6 +101,7 @@ class TestUsersRoute:
         user_id = 1
         response = client.get(f"{self.base_api}/{user_id}/reports")
         reports_list = response.json
+        logger.info(reports_list)
 
         assert isinstance(reports_list, list)
 
@@ -107,6 +109,7 @@ class TestUsersRoute:
         user_id = 1
         response = client.get(f"{self.base_api}/{user_id}/datasources")
         datasources_list = response.json
+        logger.info(datasources_list)
 
         assert isinstance(datasources_list, list)
 
