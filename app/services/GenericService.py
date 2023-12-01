@@ -233,12 +233,12 @@ class GenericService:
         existing_model: GenericModel = self.get_by_id(id)
 
         existing_model_dict = self.to_json(existing_model)
-        for field in existing_model.updatable_fields:
+        for field in existing_model_dict:
             if field in updated_model_dict:
                 existing_model_dict[field] = updated_model_dict[field]
 
         updated_model = self.map_model(existing_model_dict)
-        for field in existing_model.updatable_fields:
+        for field in existing_model_dict:
             value = getattr(updated_model, field)
             setattr(existing_model, field, value)
 
