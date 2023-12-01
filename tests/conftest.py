@@ -121,11 +121,13 @@ def create_organization_members(db: SQLAlchemy):
 
 @pytest.fixture(scope="session")
 def create_datasources(db: SQLAlchemy):
-    from app.models import Datasources, DatasourceTypes
+    from app.config import APP_UPLOAD_FOLDER
+    from app.models import FileDatasources, DatasourceTypes
 
-    datasource1 = Datasources()
+    datasource1 = FileDatasources()
     datasource1.name = "Transactions Datasource"
-    datasource1.type = DatasourceTypes.CSV
+    datasource1.type = DatasourceTypes.FILE
+    datasource1.file_path = APP_UPLOAD_FOLDER.joinpath("test.csv").resolve().as_posix()
     datasource1.creator_id = 1
 
     db.session.add(datasource1)
@@ -137,9 +139,9 @@ def create_datasources(db: SQLAlchemy):
 
 @pytest.fixture(scope="session")
 def create_reports(db: SQLAlchemy):
-    from app.models import Reports, ReportTypes
+    from app.models import GenericReports, ReportTypes
 
-    report1 = Reports()
+    report1 = GenericReports()
     report1.name = "Transactions Report"
     report1.type = ReportTypes.GENERIC
     report1.creator_id = 1
@@ -153,16 +155,28 @@ def create_reports(db: SQLAlchemy):
 
 @pytest.fixture(scope="session")
 def create_visualizations(db: SQLAlchemy):
-    from app.models import Visualizations, VisualizationTypes
+    from app.config import APP_VISUALIZATIONS_FOLDER
+    from app.models import (
+        FileVisualizations,
+        DataVisualizations,
+        VisualizationTypes,
+    )
 
-    visualization1 = Visualizations()
+    visualization1 = DataVisualizations()
     visualization1.name = "Transactions visualization 1"
     visualization1.type = VisualizationTypes.DATA_POINTS
+    visualization1.data_points = "[1,6,2,9,2]"
+    visualization1.file_path = (
+        APP_VISUALIZATIONS_FOLDER.joinpath("viz_1.png").resolve().as_posix()
+    )
     visualization1.report_id = 1
 
-    visualization2 = Visualizations()
+    visualization2 = FileVisualizations()
     visualization2.name = "Transactions visualization 2"
     visualization2.type = VisualizationTypes.FILE
+    visualization2.file_path = (
+        APP_VISUALIZATIONS_FOLDER.joinpath("viz_2.png").resolve().as_posix()
+    )
     visualization2.report_id = 1
 
     db.session.add(visualization1)
