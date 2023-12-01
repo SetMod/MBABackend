@@ -1,8 +1,6 @@
 from sqlalchemy import (
     ForeignKeyConstraint,
     Index,
-    Table,
-    Column,
     ForeignKey,
     Integer,
     Float,
@@ -81,8 +79,6 @@ class GenericModel(db.Model):
 
     soft_deleted: Mapped[bool] = mapped_column("soft_deleted", Boolean, default=False)
 
-    updatable_fields: list = []
-
     @classmethod
     def _name(cls, lower: bool = True, many: bool = False):
         model_name = cls.__name__
@@ -128,12 +124,6 @@ class OrganizationMembers(GenericModel):
         "Datasources", back_populates="creator"
     )
 
-    updatable_fields = [
-        "organization_id",
-        "role",
-        "active",
-    ]
-
     __table_args__ = (
         UniqueConstraint(
             "user_id",
@@ -158,25 +148,7 @@ class OrganizationMembers(GenericModel):
     )
 
     def __repr__(self):
-        return f"<OrganizationMembers(id='{self.id}',user_id='{self.user_id}',organization_id='{self.organization_id}',role='{self.role}',active='{self.active}',{self._get_generic_repr()})>"
-
-
-# organization_members = Table(
-#     "organization_members",
-#     Base.metadata,
-#     Column("id", Integer, primary_key=True, nullable=False),
-#     Column("user_id", ForeignKey("users.id")),
-#     Column("organization_id", ForeignKey("organizations.id")),
-#     Column(
-#         "role",
-#         Enum(OrganizationRoles),
-#         default=OrganizationRoles.VIEWER,
-#         nullable=False,
-#     ),
-#     Column("active", Boolean, default=True, nullable=False),
-#     Column("created_date", DateTime, default=datetime.utcnow, nullable=False),
-#     Column("updated_date", DateTime, default=True, nullable=True),
-# )
+        return f"<{self._name(lower=False)}(id='{self.id}',user_id='{self.user_id}',organization_id='{self.organization_id}',role='{self.role}',active='{self.active}',{self._get_generic_repr()})>"
 
 
 class Users(GenericModel):
@@ -204,30 +176,9 @@ class Users(GenericModel):
         "role", Enum(Roles), default=Roles.USER, nullable=False
     )
 
-    # organizations: Mapped[List["Organizations"]] = relationship(
-    #     secondary=organization_members,
-    #     back_populates="members",
-    #     cascade="save-update, merge, delete",
-    # )
     memberships: Mapped[List["OrganizationMembers"]] = relationship(
         "OrganizationMembers", back_populates="user"
     )
-    # organizations: Mapped[List["Organizations"]] = relationship(
-    #     secondary="organization_members",
-    #     back_populates="members",
-    #     cascade="save-update, merge, delete",
-    # )
-
-    updatable_fields = [
-        "first_name",
-        "second_name",
-        "email",
-        "phone",
-        "username",
-        "password_hash",
-        "active",
-        "role",
-    ]
 
     @property
     def password(self):
@@ -241,7 +192,7 @@ class Users(GenericModel):
         return check_password_hash(self.password_hash, password)
 
     def __repr__(self):
-        return f"<User(id='{self.id}',first_name='{self.first_name}',second_name='{self.second_name}',email='{self.email}',phone='{self.phone}',username='{self.username}',role='{self.role}',{self._get_generic_repr()})>"
+        return f"<{self._name(lower=False)}(id='{self.id}',first_name='{self.first_name}',second_name='{self.second_name}',email='{self.email}',phone='{self.phone}',username='{self.username}',role='{self.role}',{self._get_generic_repr()})>"
 
 
 class Organizations(GenericModel):
@@ -254,32 +205,9 @@ class Organizations(GenericModel):
     memberships: Mapped[List["OrganizationMembers"]] = relationship(
         "OrganizationMembers", back_populates="organization"
     )
-    # members: Mapped[List[Users]] = relationship(
-    #     secondary="organization_members",
-    #     back_populates="organizations",
-    #     cascade="save-update, merge, delete",
-    # )
-    # members: Mapped[List[Users]] = relationship(
-    #     secondary=organization_members,
-    #     back_populates="organizations",
-    #     cascade="save-update, merge, delete",
-    # )
-    # reports: Mapped[List["Reports"]] = relationship(
-    #     "Reports", back_populates="organization"
-    # )
-    # datasources: Mapped[List["Datasources"]] = relationship(
-    #     "Datasources", back_populates="organization"
-    # )
-
-    updatable_fields = [
-        "name",
-        "description",
-        "email",
-        "phone",
-    ]
 
     def __repr__(self):
-        return f"<Organization(id='{self.id}',name='{self.name}',description='{self.description}',email='{self.email}',phone='{self.phone}',{self._get_generic_repr()})>"
+        return f"<{self._name(lower=False)}(id='{self.id}',name='{self.name}',description='{self.description}',email='{self.email}',phone='{self.phone}',{self._get_generic_repr()})>"
 
 
 class Datasources(GenericModel):
@@ -287,43 +215,33 @@ class Datasources(GenericModel):
 
     name: Mapped[str] = mapped_column("name", String(100), nullable=False)
     type: Mapped[DatasourceTypes] = mapped_column(
-        "type", Enum(DatasourceTypes), nullable=False
+        "type", Enum(DatasourceTypes), default=DatasourceTypes.FILE, nullable=False
     )
     creator_id: Mapped[int] = mapped_column(
         "creator_id", Integer, ForeignKey("organization_members.id")
     )
     creator: Mapped[OrganizationMembers] = relationship(
-        OrganizationMembers, back_populates="datasources"
+        OrganizationMembers, back_populates=__tablename__
     )
 
-    updatable_fields = [
-        "name",
-        "type",
-    ]
+    __mapper_args__ = {
+        "polymorphic_on": type,
+        "polymorphic_identity": __tablename__,
+    }
 
     def __repr__(self):
-        return f"<Report(id='{self.id}',name='{self.name}',creator_id='{self.creator_id}',{self._get_generic_repr()})>"
+        return f"<{self._name(lower=False)}(id='{self.id}',name='{self.name}',type='{self.type}',creator_id='{self.creator_id}',{self._get_generic_repr()})>"
 
 
-class FileDatasources(GenericModel):
-    __tablename__ = "file_datasources"
+class FileDatasources(Datasources):
+    __mapper_args__ = {"polymorphic_identity": DatasourceTypes.FILE}
 
-    name: Mapped[str] = mapped_column("name", String(100), nullable=False)
     file_path: Mapped[str] = mapped_column(
-        "file_path", String(255), unique=True, nullable=False
+        "file_path", String(255), unique=True, nullable=True
     )
-    datasource_id: Mapped[int] = mapped_column(
-        "datasource_id", Integer, ForeignKey("datasources.id")
-    )
-    # datasource: Mapped["Users"] = relationship("Users", back_populates="file_datasources")
-
-    updatable_fields = [
-        "name",
-        "file_path",
-    ]
 
     def __repr__(self):
-        return f"<File(id='{self.id}',name='{self.name}',file_path='{self.file_path}',datasource_id='{self.datasource_id}',{self._get_generic_repr()})>"
+        return f"<{self._name(lower=False)}(id='{self.id}',name='{self.name}',creator_id='{self.creator_id}',file_path='{self.file_path}',{self._get_generic_repr()})>"
 
 
 class Reports(GenericModel):
@@ -337,20 +255,27 @@ class Reports(GenericModel):
         "creator_id", ForeignKey("organization_members.id"), nullable=False
     )
     creator: Mapped[OrganizationMembers] = relationship(
-        OrganizationMembers, back_populates="reports"
+        OrganizationMembers, back_populates=__tablename__
     )
 
     visualizations: Mapped[List["Visualizations"]] = relationship(
         "Visualizations", back_populates="report"
     )
 
-    updatable_fields = [
-        "name",
-        "type",
-    ]
+    __mapper_args__ = {
+        "polymorphic_on": type,
+        "polymorphic_identity": __tablename__,
+    }
 
     def __repr__(self):
-        return f"<Report(id='{self.id}',name='{self.name}',type='{self.type}',creator_id='{self.creator_id}',{self._get_generic_repr()})>"
+        return f"<{self._name(lower=False)}(id='{self.id}',name='{self.name}',type='{self.type}',creator_id='{self.creator_id}',{self._get_generic_repr()})>"
+
+
+class GenericReports(Reports):
+    __mapper_args__ = {"polymorphic_identity": ReportTypes.GENERIC}
+
+    def __repr__(self):
+        return f"<{self._name(lower=False)}(id='{self.id}',name='{self.name}',type='{self.type}',creator_id='{self.creator_id}',{self._get_generic_repr()})>"
 
 
 class Visualizations(GenericModel):
@@ -358,61 +283,41 @@ class Visualizations(GenericModel):
 
     name: Mapped[str] = mapped_column("name", String(50), nullable=False)
     type: Mapped[VisualizationTypes] = mapped_column(
-        "type", Enum(VisualizationTypes), nullable=False
+        "type",
+        Enum(VisualizationTypes),
+        default=VisualizationTypes.FILE,
+        nullable=False,
     )
     report_id: Mapped[int] = mapped_column(
         "report_id", Integer, ForeignKey("reports.id"), nullable=False
     )
-    report: Mapped["Reports"] = relationship("Reports", back_populates="visualizations")
+    report: Mapped["Reports"] = relationship("Reports", back_populates=__tablename__)
 
-    updatable_fields = [
-        "name",
-        "type",
-    ]
-
-    def __repr__(self) -> str:
-        return f"Visualization(id='{self.id}',name='{self.name}',report_id='{self.report_id}',{self._get_generic_repr()})"
-
-
-class FileVisualizations(GenericModel):
-    __tablename__ = "file_visualizations"
-
-    name: Mapped[str] = mapped_column("name", String(50), nullable=False)
-    file_path: Mapped[str] = mapped_column("file_path", String(255), nullable=False)
-    visualization_id: Mapped[int] = mapped_column(
-        "visualization_id", Integer, ForeignKey("visualizations.id"), nullable=False
-    )
-    # visualization: Mapped["visualizations"] = relationship("visualizations", back_populates="visualizations")
-
-    updatable_fields = [
-        "name",
-        "file_path",
-    ]
+    __mapper_args__ = {
+        "polymorphic_on": type,
+        "polymorphic_identity": __tablename__,
+    }
 
     def __repr__(self) -> str:
-        return f"Visualization(id='{self.id}',name='{self.name}',file_path='{self.file_path}',visualization_id='{self.visualization_id}',{self._get_generic_repr()})"
+        return f"<{self._name(lower=False)}(id='{self.id}',name='{self.name}',report_id='{self.report_id}',{self._get_generic_repr()})>"
 
 
-class DataVisualizations(GenericModel):
-    __tablename__ = "data_visualizations"
+class FileVisualizations(Visualizations):
+    __mapper_args__ = {"polymorphic_identity": VisualizationTypes.FILE}
 
-    name: Mapped[str] = mapped_column("name", String(50), nullable=False)
-    file_path: Mapped[str] = mapped_column("file_path", String(255), nullable=False)
-    data_points: Mapped[str] = mapped_column("data_points", Text, nullable=False)
-    visualization_id: Mapped[int] = mapped_column(
-        "visualization_id", Integer, ForeignKey("visualizations.id"), nullable=False
-    )
-    # visualization: Mapped["visualizations"] = relationship("visualizations", back_populates="visualizations")
-
-    updatable_fields = [
-        "name",
-        "type",
-        "file_path",
-        "data_points",
-    ]
+    file_path: Mapped[str] = mapped_column("file_path", String(255), nullable=True)
 
     def __repr__(self) -> str:
-        return f"Visualization(id='{self.id}',name='{self.name}',file_path='{self.file_path}',visualization_id='{self.visualization_id}',{self._get_generic_repr()})"
+        return f"<{self._name(lower=False)}(id='{self.id}',name='{self.name}',file_path='{self.file_path}',{self._get_generic_repr()})>"
+
+
+class DataVisualizations(FileVisualizations):
+    __mapper_args__ = {"polymorphic_identity": VisualizationTypes.DATA_POINTS}
+
+    data_points: Mapped[str] = mapped_column("data_points", Text, nullable=True)
+
+    def __repr__(self) -> str:
+        return f"<{self._name(lower=False)}(id='{self.id}',name='{self.name}',file_path='{self.file_path}',{self._get_generic_repr()})>"
 
 
 class Analyzes(GenericModel):
@@ -440,15 +345,5 @@ class Analyzes(GenericModel):
     )
     # report: Mapped["Reports"] = relationship("Reports", back_populates="analyzes")
 
-    updatable_fields = [
-        "name",
-        "description",
-        "support",
-        "lift",
-        "confidence",
-        "rules_length",
-        "file_path",
-    ]
-
     def __repr__(self):
-        return f"<Analyze(id='{self.id}',name='{self.name}',support='{self.support}',lift='{self.lift}',confidence='{self.confidence}',rules_length='{self.rules_length}',report_id='{self.report_id}',{self._get_generic_repr()})>"
+        return f"<{self._name(lower=False)}(id='{self.id}',name='{self.name}',support='{self.support}',lift='{self.lift}',confidence='{self.confidence}',rules_length='{self.rules_length}',report_id='{self.report_id}',{self._get_generic_repr()})>"
