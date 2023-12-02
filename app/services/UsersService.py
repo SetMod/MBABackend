@@ -87,7 +87,7 @@ class UsersService(GenericService):
         return datasources
 
     def login(self, username: str, password: str) -> Users:
-        logger.info(f"Logging in {self.model_class._name()}")
+        logger.info(f"Login in {self.model_class._name()}")
 
         existing_user: Users = self.get_by_field("username", username)
         correct_password = existing_user.verify_password(password)
