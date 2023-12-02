@@ -1,5 +1,4 @@
 from typing import List
-from app.exceptions import CustomBadRequest, CustomNotFound
 from app.logger import logger
 from app.db import db
 from app.models import (
@@ -7,10 +6,9 @@ from app.models import (
     OrganizationMembers,
     Organizations,
     Reports,
-    Users,
 )
 from app.schemas import OrganizationsSchema
-from app.services import GenericService, GenericService
+from app.services import GenericService
 
 
 class OrganizationsService(GenericService):
@@ -21,7 +19,6 @@ class OrganizationsService(GenericService):
         logger.info(f"Getting {self.model_class._name()} members")
 
         organization: Organizations = self.get_by_id(id)
-        # members: List[Users] = organization.members
         members: List[OrganizationMembers] = (
             db.session.execute(
                 db.select(OrganizationMembers).where(
