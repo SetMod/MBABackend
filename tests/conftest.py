@@ -199,7 +199,7 @@ def create_models(
     pass
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="session")
 def login(client: FlaskClient):
     from app.logger import logger
 
@@ -208,9 +208,13 @@ def login(client: FlaskClient):
         "/api/v1/users/auth/login",
         json=user,
     )
-    logger.info("Login response data:")
     logger.info(res.json)
     logger.info(res.headers)
+
+    access_token = res.json["access_token"]
+    headers = {"Authorization": f"Bearer {access_token}"}
+
+    return headers
 
 
 @pytest.fixture(scope="module")
