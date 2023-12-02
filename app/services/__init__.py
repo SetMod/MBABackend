@@ -8,3 +8,13 @@ from app.services.FileDatasourcesService import FileDatasourcesService
 from app.services.VisualizationsService import VisualizationsService
 from app.services.FileVisualizationsService import FileVisualizationsService
 from app.services.ReportsService import ReportsService
+
+organization_members_service = OrganizationMembersService()
+users_service = UsersService()
+organizations_service = OrganizationsService()
+analyzes_service = AnalyzesService()
+datasources_service = DatasourcesService()
+file_datasources_service = FileDatasourcesService()
+visualizations_service = VisualizationsService()
+file_visualizations_service = FileVisualizationsService()
+reports_service = ReportsService()
