@@ -7,21 +7,14 @@ from flask_jwt_extended import (
     current_user,
 )
 from app.logger import logger
-from app.routes.crud import register_crud_routes
-from app.services import (
-    datasources_service,
-    organizations_service,
-    reports_service,
-    users_service,
-)
+from app.services import users_service
 
 
 jwt_optional = False
-users_bp = Blueprint(name="users", import_name=__name__)
-register_crud_routes(users_bp, users_service, jwt_optional)
+auth_bp = Blueprint(name="auth", import_name=__name__)
 
 
-@users_bp.post("/auth/register")
+@auth_bp.post("/register")
 def register():
     new_user_dict = request.json
     new_model = users_service.create(new_user_dict)
@@ -29,7 +22,7 @@ def register():
     return jsonify(users_service.to_json(new_model)), 201
 
 
-@users_bp.post("/auth/login")
+@auth_bp.post("/login")
 def login():
     user_dict = request.json
     if "username" not in user_dict or "password" not in user_dict:
@@ -53,15 +46,15 @@ def login():
     # return response
 
 
-@users_bp.get("/auth/who_am_i")
+@auth_bp.get("/who_am_i")
 @jwt_required(optional=jwt_optional)
 def protected():
-    # We can now access our sqlalchemy User object via `current_user`.
     current_user_dict = users_service.to_json(current_user)
+
     return jsonify(current_user_dict)
 
 
-@users_bp.get("/auth/logout")
+@auth_bp.get("/logout")
 @jwt_required(optional=jwt_optional)
 def logout():
     response = jsonify({"message": "logout successful"})
@@ -70,7 +63,7 @@ def logout():
     return response
 
 
-@users_bp.post("/<string:username>/request_reset")
+@auth_bp.post("/<string:username>/request_reset")
 def request_reset(username: str):
     email = request.args.get("email")
 
@@ -79,7 +72,7 @@ def request_reset(username: str):
     return jsonify({"message": "Reset email sent"}), 200
 
 
-@users_bp.route("/<string:username>/reset_password")
+@auth_bp.route("/<string:username>/reset_password")
 def reset_password(username: str):
     token = request.json.get("token")
     password = request.json.get("password")
@@ -87,27 +80,3 @@ def reset_password(username: str):
     users_service.reset_password(username=username, password=password, token=token)
 
     return jsonify({"message": "Password reset successfully"}), 200
-
-
-@users_bp.get("/<int:id>/organizations")
-@jwt_required(optional=jwt_optional)
-def get_all_organizations(id: int):
-    user_organizations = users_service.get_all_organizations(id)
-
-    return jsonify(organizations_service.to_json(user_organizations)), 200
-
-
-@users_bp.get("/<int:id>/reports")
-@jwt_required(optional=jwt_optional)
-def get_all_reports(id: int):
-    user_reports = users_service.get_all_reports(id)
-
-    return jsonify(reports_service.to_json(user_reports)), 200
-
-
-@users_bp.get("/<int:id>/datasources")
-@jwt_required(optional=jwt_optional)
-def get_all_datasources(id: int):
-    user_datasources = users_service.get_all_datasources(id)
-
-    return jsonify(datasources_service.to_json(user_datasources)), 200
