@@ -5,14 +5,15 @@ from app.config import APP_ANALYZES_FOLDER
 from app.logger import logger
 from app.db import db
 from app.models import Analyzes, FileDatasources, Visualizations
-from app.schemas import AnalyzesSchema, FileDatasourcesSchema
+from app.schemas import AnalyzesSchema
 from app.services.GenericService import GenericService
-from app.services.VisualizationsService import VisualizationsService
+# from app.services.FileDatasourcesService import FileDatasourcesService
+# from app.services.VisualizationsService import VisualizationsService
 
 
 class AnalyzesService(GenericService):
-    files_service = FileDatasourcesSchema()
-    visualizations_service = VisualizationsService()
+    # files_service = FileDatasourcesService()
+    # visualizations_service = VisualizationsService()
 
     def __init__(self) -> None:
         super().__init__(schema=AnalyzesSchema(), model_class=Analyzes)
