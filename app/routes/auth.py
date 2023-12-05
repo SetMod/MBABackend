@@ -17,6 +17,23 @@ auth_bp = Blueprint(name="auth", import_name=__name__)
 @auth_bp.post("/register")
 def register():
     new_user_dict = request.json
+    new_user_dict.pop("id")
+
+    if "password_hash" in new_user_dict:
+        password = new_user_dict.pop("password_hash", None)
+        new_user_dict["password"] = password
+    if not password:
+        msg = "User password not specified"
+        logger.warning(msg)
+        return (
+            jsonify(
+                {
+                    "errorMsg": msg,
+                    "code": 400,
+                }
+            ),
+            400,
+        )
     new_model = users_service.create(new_user_dict)
 
     return jsonify(users_service.to_json(new_model)), 201
