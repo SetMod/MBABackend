@@ -2,7 +2,7 @@ from flask import Flask
 from app.config import APP_DATABASE_PATH
 from app.db import db
 from app import create_app
-from app.models import Users
+from app.models import OrganizationMembers, OrganizationRoles, Organizations, Users, Roles
 import argparse
 import os
 
@@ -40,8 +40,23 @@ def create_database(app: Flask):
         user.email = "guest@example.com"
         user.phone = "+123456567123"
         user.active = True
+        user.role = Roles.ADMIN
+
+        org1 = Organizations()
+        org1.name = "LocalStore"
+        org1.description = "LocalStore organization for local stores"
+        org1.email = "business@localstore.com"
+        org1.phone = "+123123123123"
+
+        member1 = OrganizationMembers()
+        member1.user_id = 1
+        member1.organization_id = 1
+        member1.active = True
+        member1.role = OrganizationRoles.OWNER
 
         db.session.add(user)
+        db.session.add(org1)
+        db.session.add(member1)
         db.session.commit()
 
 
