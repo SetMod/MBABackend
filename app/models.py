@@ -337,13 +337,13 @@ class Analyzes(GenericModel):
     finished_date: Mapped[datetime] = mapped_column(
         "finished_date", DateTime, default=datetime.utcnow
     )
-    report_id: Mapped[int] = mapped_column(
-        "report_id",
+    datasource_id: Mapped[int] = mapped_column(
+        "datasource_id",
         Integer,
-        ForeignKey("reports.id"),
+        ForeignKey("datasources.id"),
         nullable=False,
     )
     # report: Mapped["Reports"] = relationship("Reports", back_populates="analyzes")
 
     def __repr__(self):
-        return f"<{self._name(lower=False)}(id='{self.id}',name='{self.name}',support='{self.support}',lift='{self.lift}',confidence='{self.confidence}',rules_length='{self.rules_length}',report_id='{self.report_id}',{self._get_generic_repr()})>"
+        return f"<{self._name(lower=False)}(id='{self.id}',name='{self.name}',support='{self.support}',lift='{self.lift}',confidence='{self.confidence}',rules_length='{self.rules_length}',datasource_id='{self.datasource_id}',{self._get_generic_repr()})>"
