@@ -19,8 +19,9 @@ def register_crud_routes(
             args = request.args.to_dict()
             for key, val in args.items():
                 args[key] = bool_map[val.lower()] if val.lower() in bool_map else val
+            many = args.pop("many", True)
 
-            model = generic_service.get_by_fields(args, many=True)
+            model = generic_service.get_by_fields(args, many=many)
 
             return jsonify(generic_service.to_json(model)), 200
         else:
