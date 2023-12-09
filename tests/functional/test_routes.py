@@ -123,6 +123,38 @@ class TestUsersRoute:
 
         assert isinstance(organizations_list, list)
 
+    def test_get_memberships(self, client: FlaskClient, login: dict):
+        user_id = 1
+        res = client.get(
+            f"{self.base_api}/{user_id}/memberships",
+            headers=login,
+            follow_redirects=True,
+        )
+        memberships_list = res.json
+        logger.info(memberships_list)
+
+        assert isinstance(memberships_list, list)
+        assert "user_id" in memberships_list[0]
+        assert "organization_id" in memberships_list[0]
+        assert "active" in memberships_list[0]
+        assert "role" in memberships_list[0]
+
+    def test_get_analyzes(self, client: FlaskClient, login: dict):
+        user_id = 1
+        res = client.get(
+            f"{self.base_api}/{user_id}/analyzes",
+            headers=login,
+            follow_redirects=True,
+        )
+        analyzes_list = res.json
+        logger.info(analyzes_list)
+
+        assert isinstance(analyzes_list, list)
+        # assert "id" in analyzes_list[0]
+        # assert "type" in analyzes_list[0]
+        # assert "status" in analyzes_list[0]
+        # assert "creator_id" in analyzes_list[0]
+
     def test_get_reports(self, client: FlaskClient, login: dict):
         user_id = 1
         res = client.get(
