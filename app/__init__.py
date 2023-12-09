@@ -1,3 +1,4 @@
+from datetime import timedelta
 from flask import Flask
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
@@ -56,6 +57,8 @@ def create_app() -> Flask:
     app.config["JWT_SECRET_KEY"] = APP_JWT_SECRET_KEY
     app.config["JWT_TOKEN_LOCATION"] = ["headers", "cookies"]
     app.config["JWT_COOKIE_CSRF_PROTECT"] = APP_JWT_COOKIE_CSRF_PROTECT
+    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
+    app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(days=30)
     CORS(app)
 
     jwt.init_app(app)
