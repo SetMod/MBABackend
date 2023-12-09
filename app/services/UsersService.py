@@ -4,6 +4,7 @@ from app.db import db
 from app.exceptions import CustomBadRequest
 from app.logger import logger
 from app.models import (
+    Analyzes,
     OrganizationMembers,
     Users,
     Organizations,
@@ -64,6 +65,16 @@ class UsersService(GenericService):
 
         return reports
 
+    def get_all_memberships(self, id: int) -> List[OrganizationMembers]:
+        logger.info(f"Getting {self.model_class._name()} memberships")
+
+        user: Users = self.get_by_id(id)
+        # reports: List[Reports] = user.reports
+        memberships: List[OrganizationMembers] = user.memberships
+        logger.info(f"Found {self.model_class._name()} memberships: {memberships}")
+
+        return memberships
+
     def get_all_datasources(self, id: int) -> List[Datasources]:
         logger.info(f"Getting {self.model_class._name()} datasources")
 
@@ -85,6 +96,28 @@ class UsersService(GenericService):
         logger.info(f"Found {self.model_class._name()} datasources: {datasources}")
 
         return datasources
+
+    def get_all_analyzes(self, id: int) -> List[Analyzes]:
+        logger.info(f"Getting {self.model_class._name()} analyzes")
+
+        user: Users = self.get_by_id(id)
+        # analyzes: List[Analyzes] = user.analyzes
+        analyzes: List[Analyzes] = (
+            db.session.execute(
+                db.select(Analyzes)
+                .join(OrganizationMembers)
+                .where(
+                    OrganizationMembers.user_id == user.id
+                    and Analyzes.creator_id == OrganizationMembers.id
+                )
+            )
+            .scalars()
+            .all()
+        )
+
+        logger.info(f"Found {self.model_class._name()} analyzes: {analyzes}")
+
+        return analyzes
 
     def login(self, username: str, password: str) -> Users:
         logger.info(f"Login in {self.model_class._name()}")

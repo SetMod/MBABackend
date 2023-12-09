@@ -11,10 +11,11 @@ from app.routes.crud import register_crud_routes
 from app.services import (
     datasources_service,
     organizations_service,
+    organization_members_service,
     reports_service,
     users_service,
+    analyzes_service,
 )
-
 
 jwt_optional = False
 users_bp = Blueprint(name="users", import_name=__name__)
@@ -97,6 +98,14 @@ def get_all_organizations(id: int):
     return jsonify(organizations_service.to_json(user_organizations)), 200
 
 
+@users_bp.get("/<int:id>/memberships")
+@jwt_required(optional=jwt_optional)
+def get_all_memberships(id: int):
+    user_memberships = users_service.get_all_memberships(id)
+
+    return jsonify(organization_members_service.to_json(user_memberships)), 200
+
+
 @users_bp.get("/<int:id>/reports")
 @jwt_required(optional=jwt_optional)
 def get_all_reports(id: int):
@@ -111,3 +120,11 @@ def get_all_datasources(id: int):
     user_datasources = users_service.get_all_datasources(id)
 
     return jsonify(datasources_service.to_json(user_datasources)), 200
+
+
+@users_bp.get("/<int:id>/analyzes")
+@jwt_required(optional=jwt_optional)
+def get_all_analyzes(id: int):
+    user_analyzes = users_service.get_all_analyzes(id)
+
+    return jsonify(analyzes_service.to_json(user_analyzes)), 200
