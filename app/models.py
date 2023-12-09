@@ -14,6 +14,7 @@ from sqlalchemy import (
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
+from model.MBAnalyze import Algorithm
 from app.db import db
 from typing import List
 import enum
@@ -122,6 +123,9 @@ class OrganizationMembers(GenericModel):
     reports: Mapped[List["Reports"]] = relationship("Reports", back_populates="creator")
     datasources: Mapped[List["Datasources"]] = relationship(
         "Datasources", back_populates="creator"
+    )
+    analyzes: Mapped[List["Analyzes"]] = relationship(
+        "Analyzes", back_populates="creator"
     )
 
     __table_args__ = (
@@ -330,7 +334,12 @@ class Analyzes(GenericModel):
     confidence: Mapped[float] = mapped_column("confidence", Float, nullable=False)
     rules_length: Mapped[int] = mapped_column("rules_length", Integer, nullable=False)
     file_path: Mapped[str] = mapped_column("file_path", String(255), nullable=False)
-    status: Mapped[str] = mapped_column("status", Enum(AnalyzeStatus), nullable=False)
+    algorithm: Mapped[Algorithm] = mapped_column(
+        "algorithm", Enum(Algorithm), nullable=False
+    )
+    status: Mapped[AnalyzeStatus] = mapped_column(
+        "status", Enum(AnalyzeStatus), nullable=False
+    )
     started_date: Mapped[datetime] = mapped_column(
         "started_date", DateTime, default=datetime.utcnow
     )
@@ -342,6 +351,12 @@ class Analyzes(GenericModel):
         Integer,
         ForeignKey("datasources.id"),
         nullable=False,
+    )
+    creator_id: Mapped[int] = mapped_column(
+        "creator_id", ForeignKey("organization_members.id"), nullable=False
+    )
+    creator: Mapped[OrganizationMembers] = relationship(
+        OrganizationMembers, back_populates=__tablename__
     )
     # report: Mapped["Reports"] = relationship("Reports", back_populates="analyzes")
 
