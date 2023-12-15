@@ -1,10 +1,8 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask.testing import FlaskClient
 from flask import Flask
-from typing import List
 import pytest
 import os
-
 
 os.environ["APP_DOTENV_PATH"] = ".env.test"
 
@@ -138,6 +136,31 @@ def create_datasources(db: SQLAlchemy):
 
 
 @pytest.fixture(scope="session")
+def create_analyzes(db: SQLAlchemy):
+    from app.models import Analyzes, Algorithm, AnalyzeStatus
+    from app.config import APP_ANALYZES_FOLDER
+
+    analyze1 = Analyzes()
+    analyze1.name = "Test analyze"
+    analyze1.description = "Test analyze for demo"
+    analyze1.algorithm = Algorithm.APRIORI
+    analyze1.confidence = 0.1
+    analyze1.support = 1
+    analyze1.lift = 1.5
+    analyze1.rules_length = 2
+    analyze1.status = AnalyzeStatus.NOT_STARTED
+    analyze1.file_path = APP_ANALYZES_FOLDER.joinpath("test.csv").resolve().as_posix()
+    analyze1.datasource_id = 1
+    analyze1.creator_id = 1
+
+    db.session.add(analyze1)
+
+    db.session.commit()
+
+    return [analyze1]
+
+
+@pytest.fixture(scope="session")
 def create_reports(db: SQLAlchemy):
     from app.models import GenericReports, ReportTypes
 
@@ -193,6 +216,7 @@ def create_models(
     create_organizations,
     create_organization_members,
     create_datasources,
+    create_analyzes,
     create_reports,
     create_visualizations,
 ):

@@ -1,6 +1,7 @@
 from flask.testing import FlaskClient
 from app.logger import logger
 from app.models import OrganizationRoles, Roles
+import json
 
 
 class TestUsersRoute:
@@ -138,6 +139,24 @@ class TestUsersRoute:
         assert "organization_id" in memberships_list[0]
         assert "active" in memberships_list[0]
         assert "role" in memberships_list[0]
+
+    def test_get_memberships_full(self, client: FlaskClient, login: dict):
+        user_id = 1
+        res = client.get(
+            f"{self.base_api}/{user_id}/memberships/full",
+            headers=login,
+            follow_redirects=True,
+        )
+        memberships_list = res.json
+        logger.info(memberships_list)
+
+        assert isinstance(memberships_list, list)
+        assert "user_id" in memberships_list[0]
+        assert "organization_id" in memberships_list[0]
+        assert "active" in memberships_list[0]
+        assert "role" in memberships_list[0]
+        assert "user" in memberships_list[0]
+        assert "organization" in memberships_list[0]
 
     def test_get_analyzes(self, client: FlaskClient, login: dict):
         user_id = 1
@@ -334,9 +353,84 @@ class TestOrganizationsRoute:
         assert "deleted_date" in role_dict
         assert "soft_deleted" in role_dict
 
+    def test_get_members(self, client: FlaskClient, login: dict):
+        org_id = 1
+        res = client.get(
+            f"{self.base_api}/{org_id}/members",
+            headers=login,
+            follow_redirects=True,
+        )
+        members_list = res.json
+        logger.info(members_list)
+
+        assert isinstance(members_list, list)
+        assert "user_id" in members_list[0]
+        assert "organization_id" in members_list[0]
+        assert "active" in members_list[0]
+        assert "role" in members_list[0]
+
+    def test_get_members_full(self, client: FlaskClient, login: dict):
+        org_id = 1
+        res = client.get(
+            f"{self.base_api}/{org_id}/members/full",
+            headers=login,
+            follow_redirects=True,
+        )
+        members_list = res.json
+        logger.info(members_list)
+
+        assert isinstance(members_list, list)
+        assert "user_id" in members_list[0]
+        assert "organization_id" in members_list[0]
+        assert "active" in members_list[0]
+        assert "role" in members_list[0]
+        assert "user" in members_list[0]
+        assert "organization" in members_list[0]
+
+    def test_get_analyzes(self, client: FlaskClient, login: dict):
+        org_id = 1
+        res = client.get(
+            f"{self.base_api}/{org_id}/analyzes",
+            headers=login,
+            follow_redirects=True,
+        )
+        analyzes_list = res.json
+        logger.info(analyzes_list)
+
+        assert isinstance(analyzes_list, list)
+        # assert "id" in analyzes_list[0]
+        # assert "type" in analyzes_list[0]
+        # assert "status" in analyzes_list[0]
+        # assert "creator_id" in analyzes_list[0]
+
+    def test_get_reports(self, client: FlaskClient, login: dict):
+        org_id = 1
+        res = client.get(
+            f"{self.base_api}/{org_id}/reports",
+            headers=login,
+            follow_redirects=True,
+        )
+        reports_list = res.json
+        logger.info(reports_list)
+
+        assert isinstance(reports_list, list)
+
+    def test_get_datasources(self, client: FlaskClient, login: dict):
+        org_id = 1
+        res = client.get(
+            f"{self.base_api}/{org_id}/datasources",
+            headers=login,
+            follow_redirects=True,
+        )
+        datasources_list = res.json
+        logger.info(datasources_list)
+
+        assert isinstance(datasources_list, list)
+
 
 class TestOrganizationMembersRoute:
-    base_api = f"/api/v1/organizations"
+    base_api = f"/api/v1/members"
+    member_id = 1
 
     def test_get_all(self, client: FlaskClient, login: dict):
         res = client.get(
@@ -348,11 +442,31 @@ class TestOrganizationMembersRoute:
         logger.info(members_list)
 
         assert isinstance(members_list, list)
+        assert "user_id" in members_list[0]
+        assert "organization_id" in members_list[0]
+        assert "role" in members_list[0]
+        assert "active" in members_list[0]
+
+    def test_get_all_full(self, client: FlaskClient, login: dict):
+        res = client.get(
+            f"{self.base_api}/full",
+            headers=login,
+            follow_redirects=True,
+        )
+        members_list = res.json
+        logger.info(members_list)
+
+        assert isinstance(members_list, list)
+        assert "user_id" in members_list[0]
+        assert "organization_id" in members_list[0]
+        assert "role" in members_list[0]
+        assert "active" in members_list[0]
+        assert "user" in members_list[0]
+        assert "organization" in members_list[0]
 
     def test_get_all_with_params(self, client: FlaskClient, login: dict):
-        org_id = 1
         res = client.get(
-            f"{self.base_api}/{org_id}/members",
+            self.base_api,
             query_string={"role": "ADMIN"},
             headers=login,
             follow_redirects=True,
@@ -365,10 +479,8 @@ class TestOrganizationMembersRoute:
         assert members_list[0]["role"] == OrganizationRoles.ADMIN.name
 
     def test_get_by_id(self, client: FlaskClient, login: dict):
-        member_id = 1
-        org_id = 1
         res = client.get(
-            f"{self.base_api}/{org_id}/members/{member_id}",
+            f"{self.base_api}/{self.member_id}",
             headers=login,
             follow_redirects=True,
         )
@@ -386,11 +498,33 @@ class TestOrganizationMembersRoute:
         assert "deleted_date" in member_dict
         assert "soft_deleted" in member_dict
 
-    def test_get_non_existing_member_by_id(self, client: FlaskClient, login: dict):
-        member_id = 212
-        org_id = 1
+    def test_get_by_id_full(self, client: FlaskClient, login: dict):
         res = client.get(
-            f"{self.base_api}/{org_id}/members/{member_id}",
+            f"{self.base_api}/{self.member_id}/full",
+            headers=login,
+            follow_redirects=True,
+        )
+        member_dict = res.json
+        logger.info(member_dict)
+
+        assert isinstance(member_dict, dict)
+        assert "id" in member_dict
+        assert "user_id" in member_dict
+        assert "organization_id" in member_dict
+        assert "active" in member_dict
+        assert "role" in member_dict
+        assert "updated_date" in member_dict
+        assert "created_date" in member_dict
+        assert "deleted_date" in member_dict
+        assert "soft_deleted" in member_dict
+        assert "user" in member_dict
+        assert "username" in member_dict["user"]
+        assert "organization" in member_dict
+        assert "name" in member_dict["organization"]
+
+    def test_get_non_existing_member_by_id(self, client: FlaskClient, login: dict):
+        res = client.get(
+            f"{self.base_api}/212",
             headers=login,
             follow_redirects=True,
         )
@@ -401,13 +535,13 @@ class TestOrganizationMembersRoute:
 
     def test_create(self, client: FlaskClient, login: dict):
         member_dict = {
+            "organization_id": 2,
             "user_id": 2,
             "active": False,
             "role": "OWNER",
         }
-        org_id = 2
         res = client.post(
-            f"{self.base_api}/{org_id}/members",
+            self.base_api,
             json=member_dict,
             # headers={
             #     "Content-Type": "application/json",
@@ -421,16 +555,17 @@ class TestOrganizationMembersRoute:
 
         assert res.status_code == 201
         assert isinstance(member, dict)
+        assert member["id"] == 3
 
     def test_create_existing_member(self, client: FlaskClient, login: dict):
         member_dict = {
+            "organization_id": 1,
             "user_id": 2,
             "active": False,
             "role": "VIEWER",
         }
-        org_id = 1
         res = client.post(
-            f"{self.base_api}/{org_id}/members",
+            self.base_api,
             json=member_dict,
             # headers={
             #     "Content-Type": "application/json",
@@ -447,13 +582,13 @@ class TestOrganizationMembersRoute:
 
     def test_create_non_existing_org_and_user(self, client: FlaskClient, login: dict):
         member_dict = {
+            "organization_id": 11,
             "user_id": 33,
             "active": False,
             "role": "VIEWER",
         }
-        org_id = 11
         res = client.post(
-            f"{self.base_api}/{org_id}/members",
+            self.base_api,
             json=member_dict,
             # headers={
             #     "Content-Type": "application/json",
@@ -469,11 +604,9 @@ class TestOrganizationMembersRoute:
         assert isinstance(member, dict)
 
     def test_update(self, client: FlaskClient, login: dict):
-        user_id = 2
-        member_dict = {"active": False}
-        org_id = 1
+        member_dict = {"active": False, "user_id": 2, "organization_id": 2}
         res = client.put(
-            f"{self.base_api}/{org_id}/members/{user_id}",
+            f"{self.base_api}/3",
             json=member_dict,
             # headers={
             #     "Content-Type": "application/json",
@@ -486,15 +619,14 @@ class TestOrganizationMembersRoute:
 
         assert res.status_code == 200
         assert isinstance(member, dict)
+        assert member["id"] == 3
         assert member["user_id"] == 2
-        assert member["organization_id"] == 1
+        assert member["organization_id"] == 2
         assert member["active"] == False
 
     def test_soft_delete(self, client: FlaskClient, login: dict):
-        user_id = 2
-        org_id = 2
         res = client.delete(
-            f"{self.base_api}/{org_id}/members/{user_id}/soft",
+            f"{self.base_api}/3/soft",
             # headers={"X-CSRF-TOKEN": client.get_cookie("csrf_access_token").value},
             headers=login,
             follow_redirects=True,
@@ -503,16 +635,15 @@ class TestOrganizationMembersRoute:
 
         assert res.status_code == 200
         assert isinstance(member, dict)
+        assert member["id"] == 3
         assert member["user_id"] == 2
         assert member["organization_id"] == 2
         assert member["soft_deleted"] == True
         assert member["deleted_date"] != None
 
     def test_delete(self, client: FlaskClient, login: dict):
-        user_id = 2
-        org_id = 2
         res = client.delete(
-            f"{self.base_api}/{org_id}/members/{user_id}",
+            f"{self.base_api}/3",
             # headers={"X-CSRF-TOKEN": client.get_cookie("csrf_access_token").value},
             headers=login,
             follow_redirects=True,
@@ -521,5 +652,121 @@ class TestOrganizationMembersRoute:
 
         assert res.status_code == 200
         assert isinstance(member, dict)
+        assert member["id"] == 3
         assert member["user_id"] == 2
         assert member["organization_id"] == 2
+
+
+class TestDatasourcesRoute:
+    base_api = f"/api/v1/datasources"
+    datasource_id = 1
+
+    def test_get_all(self, client: FlaskClient, login: dict):
+        res = client.get(
+            self.base_api,
+            headers=login,
+            follow_redirects=True,
+        )
+        datasources_list = res.json
+        logger.info(datasources_list)
+
+        assert res.status_code == 200
+        assert isinstance(datasources_list, list)
+        assert isinstance(datasources_list[0], dict)
+        assert "id" in datasources_list[0]
+        assert "name" in datasources_list[0]
+        assert "type" in datasources_list[0]
+        assert "file_path" in datasources_list[0]
+        assert "creator_id" in datasources_list[0]
+
+    def test_get_all_full(self, client: FlaskClient, login: dict):
+        res = client.get(
+            f"{self.base_api}/full",
+            headers=login,
+            follow_redirects=True,
+        )
+        datasources_list = res.json
+        logger.info(datasources_list)
+
+        assert res.status_code == 200
+        assert isinstance(datasources_list, list)
+        assert "id" in datasources_list[0]
+        assert "name" in datasources_list[0]
+        assert "type" in datasources_list[0]
+        assert "file_path" in datasources_list[0]
+        assert "creator_id" in datasources_list[0]
+        assert "creator" in datasources_list[0]
+
+    def test_get_by_id(self, client: FlaskClient, login: dict):
+        res = client.get(
+            f"{self.base_api}/{self.datasource_id}",
+            headers=login,
+            follow_redirects=True,
+        )
+        datasource_dict = res.json
+        logger.info(datasource_dict)
+
+        assert res.status_code == 200
+        assert isinstance(datasource_dict, dict)
+        assert "id" in datasource_dict
+        assert "name" in datasource_dict
+        assert "type" in datasource_dict
+        assert "file_path" in datasource_dict
+        assert "creator_id" in datasource_dict
+
+    def test_get_by_id_full(self, client: FlaskClient, login: dict):
+        res = client.get(
+            f"{self.base_api}/{self.datasource_id}/full",
+            headers=login,
+            follow_redirects=True,
+        )
+        datasource_dict = res.json
+        logger.info(datasource_dict)
+
+        assert res.status_code == 200
+        assert isinstance(datasource_dict, dict)
+        assert "id" in datasource_dict
+        assert "name" in datasource_dict
+        assert "type" in datasource_dict
+        assert "file_path" in datasource_dict
+        assert "creator_id" in datasource_dict
+        assert "creator" in datasource_dict
+
+    def test_create_file_datasource(self, client: FlaskClient, login: dict):
+        data = {
+            "file": open("model/data/Groceries_dataset.csv", "rb"),
+            "file_datasource": json.dumps(
+                {
+                    "name": "File datasource for tests",
+                    "type": "FILE",
+                    "creator_id": 1,
+                    "file_path": "",
+                }
+            ),
+        }
+        res = client.post(
+            f"{self.base_api}/upload",
+            data=data,
+            headers=login,
+            follow_redirects=True,
+            content_type="multipart/form-data",
+        )
+        file_datasource_dict = res.json
+
+        assert res.status_code == 200
+        assert isinstance(file_datasource_dict, dict)
+        assert "id" in file_datasource_dict
+        assert file_datasource_dict["id"] == 2
+
+    def test_delete(self, client: FlaskClient, login: dict):
+        res = client.delete(
+            f"{self.base_api}/2",
+            headers=login,
+            follow_redirects=True,
+        )
+        datasource = res.json
+
+        assert res.status_code == 200
+        assert isinstance(datasource, dict)
+        assert datasource["id"] == 2
+        assert datasource["creator_id"] == 1

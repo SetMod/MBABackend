@@ -11,6 +11,7 @@ from app.models import (
     Roles,
     Users,
 )
+from app.logger import logger
 from app.services import OrganizationMembersService, OrganizationsService, UsersService
 
 
@@ -169,7 +170,7 @@ class TestUsersService:
         updated_user_dict = {"username": "bob_ross"}
 
         with pytest.raises(CustomBadRequest):
-            user: Users = users_service.update(3, updated_user_dict)
+            user: Users = users_service.update(1, updated_user_dict)
 
     def test_soft_delete(self, users_service: UsersService):
         user: Users = users_service.soft_delete(3)
@@ -323,7 +324,7 @@ class TestOrganizationsService:
 
         with pytest.raises(CustomBadRequest):
             organization: Organizations = organizations_service.update(
-                3, updated_organization_dict
+                1, updated_organization_dict
             )
 
     def test_soft_delete(self, organizations_service: OrganizationsService):
@@ -470,7 +471,7 @@ class TestOrganizationMembersService:
 
     def test_create(self, organization_members_service: OrganizationMembersService):
         organization_member = {
-            "user_id": 2,
+            "user_id": 1,
             "organization_id": 2,
             "role": "OWNER",
             "active": True,
@@ -481,7 +482,7 @@ class TestOrganizationMembersService:
 
         assert isinstance(new_organization_member, OrganizationMembers)
         assert new_organization_member.id == 3
-        assert new_organization_member.user_id == 2
+        assert new_organization_member.user_id == 1
         assert new_organization_member.organization_id == 2
         assert new_organization_member.role == OrganizationRoles.OWNER
         assert new_organization_member.active == True
@@ -490,7 +491,7 @@ class TestOrganizationMembersService:
         self, organization_members_service: OrganizationMembersService
     ):
         organization_member = {
-            "user_id": 2,
+            "user_id": 1,
             "organization_id": 2,
             "role": "OWNER",
             "active": True,
