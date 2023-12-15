@@ -1,12 +1,37 @@
 from flask_mailman import EmailMessage
 from marshmallow import ValidationError
 from app.logger import logger
+from app.config import ALLOWED_EXTENSIONS
+from werkzeug.utils import secure_filename
 import secrets
+import uuid
+import os
 
 
 def generate_reset_token():
     # Generate a random token (for example purposes)
     return secrets.token_urlsafe(32)
+
+
+def allowed_file(filename):
+    _, file_extension = os.path.splitext(filename)
+    if not file_extension:
+        return False
+
+    file_extension = str(file_extension).removeprefix(".")
+    return file_extension in ALLOWED_EXTENSIONS
+
+
+def generate_unique_filename(file_prefix: str, file_extension: str):
+    unique_filename = str(uuid.uuid4())
+    file_extension = (
+        file_extension if file_extension.startswith(".") else "." + file_extension
+    )
+
+    file_prefix = file_prefix + "-" if file_prefix else ""
+    filename = secure_filename(f"{file_prefix}{unique_filename}{file_extension}")
+
+    return filename
 
 
 def send_reset_email(email, token):
@@ -23,7 +48,7 @@ def send_reset_email(email, token):
 
 
 def password_check(passwd: str):
-    special_symbols = ["$", "@", "#", "%"]
+    special_symbols = ["!", "$", "@", "#", "%"]
     min_length = 6
     max_length = 20
 
