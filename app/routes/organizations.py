@@ -1,26 +1,45 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
-from app.routes.crud import register_crud_routes
-from app.services import organizations_service, users_service
+from app.logger import logger
+from app.routes.common import register_crud_routes, register_get_full_routes
+from app.schemas import (
+    AnalyzesFullSchema,
+    DatasourcesTypeFullSchema,
+    OrganizationMembersFullSchema,
+    ReportsFullSchema,
+)
+from app.services import (
+    organizations_service,
+    reports_service,
+    datasources_service,
+    analyzes_service,
+    organization_members_service,
+)
 
 jwt_optional = False
 organizations_bp = Blueprint(name="organizations", import_name=__name__)
 register_crud_routes(organizations_bp, organizations_service, jwt_optional)
+register_get_full_routes(organizations_bp, organizations_service, jwt_optional)
 
 
-# @organizations_bp.get("/<int:id>/members")
-# @jwt_required(optional=jwt_optional)
-# def get_all_members(id: int):
-#     members = organizations_service.get_all_members(id)
+@organizations_bp.get("/<int:id>/members")
+@jwt_required(optional=jwt_optional)
+def get_all_members(id: int):
+    logger.info(f"{request.remote_addr} - {request.method} {request.full_path}")
 
-#     return jsonify(users_service.to_json(members)), 200
+    args = request.args.to_dict()
+
+    args["organization_id"] = id
+    organization_members = organizations_service.get_all_members(id)
+    return jsonify(organization_members_service.to_json(organization_members)), 200
 
 
-# @organizations_bp.get("/<int:id>/members/<int:user_id>")
-# @jwt_required(optional=jwt_optional)
-# def get_all_member_by_id(id: int, user_id: int):
-#     member = organizations_service.organization_members_service.get_by_fields(
-#         {"user_id": user_id, "organization_id": id}
-#     )
+@organizations_bp.get("/<int:id>/members/full")
+@jwt_required(optional=jwt_optional)
+def get_all_member_full(id: int):
+    org_members = organizations_service.get_all_members(id)
 
-#     return jsonify(users_service.to_json(member)), 200
+    return (
+        jsonify(OrganizationMembersFullSchema().dump(org_members, many=True)),
+        200,
+    )
