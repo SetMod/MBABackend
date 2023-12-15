@@ -1,5 +1,5 @@
 from flask import Blueprint
-from app.routes.crud import register_crud_routes
+from app.routes.common import register_crud_routes
 from app.services import visualizations_service
 
 visualizations_bp = Blueprint(name="visualizations", import_name=__name__)
