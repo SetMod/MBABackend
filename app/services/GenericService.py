@@ -33,7 +33,10 @@ class GenericService:
         logger.info(f"Mapping {self.model_class._name()} model")
         try:
             model_dict = self.schema.load(model_dict)
-            model = self.model_class(**model_dict)
+            if isinstance(model_dict, dict):
+                model = self.model_class(**model_dict)
+            else:
+                model = model_dict
             logger.info(f"Mapped {self.model_class._name()}: {model}")
             return model
         except ValidationError as err:
@@ -229,11 +232,11 @@ class GenericService:
     def update(self, id: int, updated_model_dict: dict) -> GenericModel:
         logger.info(f"Updating {self.model_class._name()} with id='{id}'")
 
-        self.get_by_unique_fields(updated_model_dict, must_exist=False)
         existing_model: GenericModel = self.get_by_id(id)
+        # self.get_by_unique_fields(updated_model_dict, must_exist=False)
 
         existing_model_dict = self.to_json(existing_model)
-        for field in existing_model_dict:
+        for field in existing_model_dict.keys():
             if field in updated_model_dict:
                 existing_model_dict[field] = updated_model_dict[field]
 
