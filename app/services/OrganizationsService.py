@@ -2,6 +2,7 @@ from typing import List
 from app.logger import logger
 from app.db import db
 from app.models import (
+    Analyzes,
     Datasources,
     OrganizationMembers,
     Organizations,
@@ -19,19 +20,22 @@ class OrganizationsService(GenericService):
         logger.info(f"Getting {self.model_class._name()} members")
 
         organization: Organizations = self.get_by_id(id)
-        members: List[OrganizationMembers] = (
-            db.session.execute(
-                db.select(OrganizationMembers).where(
-                    OrganizationMembers.organization_id == organization.id
-                )
-            )
-            .scalars()
-            .all()
+        # members: List[OrganizationMembers] = (
+        #     db.session.execute(
+        #         db.select(OrganizationMembers).where(
+        #             OrganizationMembers.organization_id == organization.id
+        #         )
+        #     )
+        #     .scalars()
+        #     .all()
+        # )
+
+        logger.info(
+            f"Found {self.model_class._name()} members: {organization.memberships}"
         )
 
-        logger.info(f"Found {self.model_class._name()} members: {members}")
-
-        return members
+        return organization.memberships
+        # return members
 
     def get_all_reports(self, id: int) -> List[Reports]:
         logger.info(f"Getting {self.model_class._name()} reports")
@@ -76,3 +80,25 @@ class OrganizationsService(GenericService):
         logger.info(f"Found {self.model_class._name()} datasources: {datasources}")
 
         return datasources
+
+    def get_all_analyzes(self, id: int) -> List[Analyzes]:
+        logger.info(f"Getting {self.model_class._name()} analyzes")
+
+        organization: Organizations = self.get_by_id(id)
+        # analyzes: List[Analyzes] = user.analyzes
+        analyzes: List[Analyzes] = (
+            db.session.execute(
+                db.select(Analyzes)
+                .join(OrganizationMembers)
+                .where(
+                    OrganizationMembers.organization_id == organization.id
+                    and Analyzes.creator_id == OrganizationMembers.id
+                )
+            )
+            .scalars()
+            .all()
+        )
+
+        logger.info(f"Found {self.model_class._name()} analyzes: {analyzes}")
+
+        return analyzes
