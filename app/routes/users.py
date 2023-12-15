@@ -7,19 +7,18 @@ from flask_jwt_extended import (
     current_user,
 )
 from app.logger import logger
-from app.routes.crud import register_crud_routes
+from app.routes.common import register_crud_routes, register_get_full_routes
+from app.schemas import OrganizationMembersFullSchema
 from app.services import (
-    datasources_service,
     organizations_service,
     organization_members_service,
-    reports_service,
     users_service,
-    analyzes_service,
 )
 
 jwt_optional = False
 users_bp = Blueprint(name="users", import_name=__name__)
 register_crud_routes(users_bp, users_service, jwt_optional)
+register_get_full_routes(users_bp, users_service, jwt_optional)
 
 
 @users_bp.post("/auth/register")
@@ -106,25 +105,12 @@ def get_all_memberships(id: int):
     return jsonify(organization_members_service.to_json(user_memberships)), 200
 
 
-@users_bp.get("/<int:id>/reports")
+@users_bp.get("/<int:id>/memberships/full")
 @jwt_required(optional=jwt_optional)
-def get_all_reports(id: int):
-    user_reports = users_service.get_all_reports(id)
+def get_all_memberships_full(id: int):
+    user_memberships = users_service.get_all_memberships(id)
 
-    return jsonify(reports_service.to_json(user_reports)), 200
-
-
-@users_bp.get("/<int:id>/datasources")
-@jwt_required(optional=jwt_optional)
-def get_all_datasources(id: int):
-    user_datasources = users_service.get_all_datasources(id)
-
-    return jsonify(datasources_service.to_json(user_datasources)), 200
-
-
-@users_bp.get("/<int:id>/analyzes")
-@jwt_required(optional=jwt_optional)
-def get_all_analyzes(id: int):
-    user_analyzes = users_service.get_all_analyzes(id)
-
-    return jsonify(analyzes_service.to_json(user_analyzes)), 200
+    return (
+        jsonify(OrganizationMembersFullSchema().dump(user_memberships, many=True)),
+        200,
+    )
