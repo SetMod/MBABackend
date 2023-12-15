@@ -33,13 +33,13 @@ class OrganizationRoles(enum.Enum):
 
 
 class DatasourceTypes(enum.Enum):
-    FILE = "file"
-    DB = "db"
+    FILE = "File"
+    DB = "DB"
 
-    CSV = "CSV"
-    SQLITE = "SQLite"
-    MYSQL = "MySQL"
-    POSTGRESQL = "PostgreSQL"
+    # CSV = "CSV"
+    # SQLITE = "SQLite"
+    # MYSQL = "MySQL"
+    # POSTGRESQL = "PostgreSQL"
 
 
 class ReportTypes(enum.Enum):
@@ -52,11 +52,12 @@ class VisualizationTypes(enum.Enum):
 
 
 class AnalyzeStatus(enum.Enum):
-    SCHEDULED = "scheduled"
-    STARTED = "started"
-    IN_PROGRESS = "in progress"
-    FINISHED = "finished"
-    FAILED = "failed"
+    NOT_STARTED = "Not started"
+    STARTED = "Started"
+    SCHEDULED = "Scheduled"
+    IN_PROGRESS = "In progress"
+    FINISHED = "Finished"
+    FAILED = "Failed"
 
 
 class GenericModel(db.Model):
@@ -98,12 +99,12 @@ class OrganizationMembers(GenericModel):
 
     user_id: Mapped[int] = mapped_column(
         "user_id",
-        ForeignKey("users.id"),
+        ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
     )
     organization_id: Mapped[int] = mapped_column(
         "organization_id",
-        ForeignKey("organizations.id"),
+        ForeignKey("organizations.id", ondelete="CASCADE"),
         nullable=False,
     )
     role: Mapped[OrganizationRoles] = mapped_column(
@@ -181,7 +182,9 @@ class Users(GenericModel):
     )
 
     memberships: Mapped[List["OrganizationMembers"]] = relationship(
-        "OrganizationMembers", back_populates="user"
+        "OrganizationMembers",
+        back_populates="user",
+        cascade="all, delete",
     )
 
     @property
@@ -207,7 +210,9 @@ class Organizations(GenericModel):
     email = mapped_column("email", String(255), unique=True, nullable=False)
     phone = mapped_column("phone", String(18), unique=True)
     memberships: Mapped[List["OrganizationMembers"]] = relationship(
-        "OrganizationMembers", back_populates="organization"
+        "OrganizationMembers",
+        back_populates="organization",
+        cascade="all, delete",
     )
 
     def __repr__(self):
@@ -222,7 +227,15 @@ class Datasources(GenericModel):
         "type", Enum(DatasourceTypes), default=DatasourceTypes.FILE, nullable=False
     )
     creator_id: Mapped[int] = mapped_column(
-        "creator_id", Integer, ForeignKey("organization_members.id")
+        "creator_id",
+        Integer,
+        ForeignKey("organization_members.id"),
+        nullable=True,
+    )
+    analyzes: Mapped[List["Analyzes"]] = relationship(
+        "Analyzes",
+        back_populates="datasource",
+        cascade="all, delete",
     )
     creator: Mapped[OrganizationMembers] = relationship(
         OrganizationMembers, back_populates=__tablename__
@@ -256,7 +269,10 @@ class Reports(GenericModel):
         "type", Enum(ReportTypes), default=ReportTypes.GENERIC, nullable=False
     )
     creator_id: Mapped[int] = mapped_column(
-        "creator_id", ForeignKey("organization_members.id"), nullable=False
+        "creator_id",
+        Integer,
+        ForeignKey("organization_members.id"),
+        nullable=True,
     )
     creator: Mapped[OrganizationMembers] = relationship(
         OrganizationMembers, back_populates=__tablename__
@@ -353,10 +369,13 @@ class Analyzes(GenericModel):
         nullable=False,
     )
     creator_id: Mapped[int] = mapped_column(
-        "creator_id", ForeignKey("organization_members.id"), nullable=False
+        "creator_id", ForeignKey("organization_members.id"), nullable=True
     )
     creator: Mapped[OrganizationMembers] = relationship(
         OrganizationMembers, back_populates=__tablename__
+    )
+    datasource: Mapped[Datasources] = relationship(
+        Datasources, back_populates=__tablename__
     )
     # report: Mapped["Reports"] = relationship("Reports", back_populates="analyzes")
 
