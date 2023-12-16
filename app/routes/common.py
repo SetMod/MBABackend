@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
 from app.logger import logger
-from app.schemas import AnalyzesFullSchema, DatasourcesTypeFullSchema, ReportsFullSchema
+from app.schemas import AnalyzesFullSchema, DatasourcesFullSchema, ReportsFullSchema
 from app.services import (
     GenericService,
     reports_service,
@@ -132,7 +132,7 @@ def register_get_full_routes(
             datasources = svc.get_all_datasources(id)
 
             return (
-                jsonify(DatasourcesTypeFullSchema().dump(datasources, many=True)),
+                jsonify(DatasourcesFullSchema().dump(datasources, many=True)),
                 200,
             )
 

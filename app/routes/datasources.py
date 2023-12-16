@@ -1,8 +1,8 @@
 from flask import Blueprint, jsonify, request, send_from_directory
 from flask_jwt_extended import jwt_required
-from app.models import DatasourceTypes, FileDatasources
+from app.models import DatasourceTypes, Datasources
 from app.routes.common import register_crud_routes
-from app.schemas import DatasourcesTypeFullSchema
+from app.schemas import DatasourcesFullSchema
 from app.services import datasources_service
 from app.config import APP_UPLOAD_FOLDER
 from app.logger import logger
@@ -22,7 +22,7 @@ def get_full():
 
     datasources = datasources_service.get_all()
     return (
-        jsonify(DatasourcesTypeFullSchema().dump(datasources, many=True)),
+        jsonify(DatasourcesFullSchema().dump(datasources, many=True)),
         200,
     )
 
@@ -34,7 +34,7 @@ def get_by_id_full(id: int):
 
     datasource = datasources_service.get_by_id(id)
 
-    return jsonify(DatasourcesTypeFullSchema().dump(datasource)), 200
+    return jsonify(DatasourcesFullSchema().dump(datasource)), 200
 
 
 @datasources_bp.post("/upload")
@@ -56,7 +56,8 @@ def create_file():
         raise CustomBadRequest(err_msg)
 
     file_datasource_dict = json.loads(file_datasource_dict)
-    logger.warning(file_datasource_dict)
+    if "id" in file_datasource_dict:
+        file_datasource_dict.pop("id")
 
     new_file_datasource = datasources_service.create_file(file_datasource_dict, file)
 
@@ -68,7 +69,7 @@ def create_file():
 def download_file_by_id(id: int):
     logger.info(f"{request.remote_addr} - {request.method} {request.full_path}")
 
-    file_datasource: FileDatasources = datasources_service.get_by_id(id)
+    file_datasource: Datasources = datasources_service.get_by_id(id)
 
     if file_datasource.type != DatasourceTypes.FILE:
         err_msg = f"Bad datasource type {DatasourceTypes.FILE.name}!={file_datasource.type.name}"
