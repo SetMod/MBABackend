@@ -2,8 +2,8 @@ from cgi import FieldStorage
 from app.config import APP_UPLOAD_FOLDER
 from app.exceptions import CustomBadRequest
 from app.logger import logger
-from app.models import Datasources, FileDatasources
-from app.schemas import DatasourcesTypeFullSchema
+from app.models import Datasources
+from app.schemas import DatasourcesFullSchema
 from app.config import APP_UPLOAD_FOLDER
 from app.services.GenericService import GenericService
 from app.utils import allowed_file, generate_unique_filename
@@ -13,9 +13,7 @@ import os
 
 class DatasourcesService(GenericService):
     def __init__(self) -> None:
-        super().__init__(
-            schema=DatasourcesTypeFullSchema(), model_class=Datasources
-        )
+        super().__init__(schema=DatasourcesFullSchema(), model_class=Datasources)
 
     def create_file(self, new_file_datasource_dict: dict, file: FieldStorage):
         logger.info(f"Creating new {self.model_class._name()}")
@@ -46,7 +44,7 @@ class DatasourcesService(GenericService):
             logger.info(f"Creating upload dir at '{APP_UPLOAD_FOLDER.as_posix()}'")
             os.makedirs(APP_UPLOAD_FOLDER)
 
-        new_file_datasource: FileDatasources = self.map_model(new_file_datasource_dict)
+        new_file_datasource: Datasources = self.map_model(new_file_datasource_dict)
         new_file_datasource.file_path = unique_file_path.as_posix()
         db.session.add(new_file_datasource)
         self.commit()
@@ -62,7 +60,7 @@ class DatasourcesService(GenericService):
     def delete(self, id: int):
         logger.info(f"Deleting {self.model_class._name()} with id='{id}'")
 
-        existing_model: FileDatasources = self.get_by_id(id)
+        existing_model: Datasources = self.get_by_id(id)
 
         if os.path.exists(existing_model.file_path):
             logger.info(f"Deleting file at '{existing_model.file_path}'")
