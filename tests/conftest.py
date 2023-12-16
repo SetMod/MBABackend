@@ -120,12 +120,14 @@ def create_organization_members(db: SQLAlchemy):
 @pytest.fixture(scope="session")
 def create_datasources(db: SQLAlchemy):
     from app.config import APP_UPLOAD_FOLDER
-    from app.models import FileDatasources, DatasourceTypes
+    from app.models import Datasources, DatasourceTypes
 
-    datasource1 = FileDatasources()
+    datasource1 = Datasources()
     datasource1.name = "Transactions Datasource"
     datasource1.type = DatasourceTypes.FILE
     datasource1.file_path = APP_UPLOAD_FOLDER.joinpath("test.csv").resolve().as_posix()
+    datasource1.file_name = "test.csv"
+    datasource1.file_size = 142342
     datasource1.creator_id = 1
 
     db.session.add(datasource1)
