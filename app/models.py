@@ -219,7 +219,19 @@ class Organizations(GenericModel):
         return f"<{self._name(lower=False)}(id='{self.id}',name='{self.name}',description='{self.description}',email='{self.email}',phone='{self.phone}',{self._get_generic_repr()})>"
 
 
-class Datasources(GenericModel):
+class FileDatasourcesMixin:
+    file_path: Mapped[str] = mapped_column(
+        "file_path", String(255), unique=True, nullable=True
+    )
+    file_name: Mapped[str] = mapped_column(
+        "file_name", String(250), unique=False, nullable=True
+    )
+    file_size: Mapped[int] = mapped_column(
+        "file_size", Integer, unique=False, nullable=True
+    )
+
+
+class Datasources(GenericModel, FileDatasourcesMixin):
     __tablename__ = "datasources"
 
     name: Mapped[str] = mapped_column("name", String(100), nullable=False)
@@ -241,24 +253,30 @@ class Datasources(GenericModel):
         OrganizationMembers, back_populates=__tablename__
     )
 
-    __mapper_args__ = {
-        "polymorphic_on": type,
-        "polymorphic_identity": __tablename__,
-    }
+    # __mapper_args__ = {
+    #     "polymorphic_on": type,
+    #     "polymorphic_identity": __tablename__,
+    # }
 
     def __repr__(self):
         return f"<{self._name(lower=False)}(id='{self.id}',name='{self.name}',type='{self.type}',creator_id='{self.creator_id}',{self._get_generic_repr()})>"
 
 
-class FileDatasources(Datasources):
-    __mapper_args__ = {"polymorphic_identity": DatasourceTypes.FILE}
+# class FileDatasources(Datasources):
+#     __mapper_args__ = {"polymorphic_identity": DatasourceTypes.FILE}
 
-    file_path: Mapped[str] = mapped_column(
-        "file_path", String(255), unique=True, nullable=True
-    )
+#     file_path: Mapped[str] = mapped_column(
+#         "file_path", String(255), unique=True, nullable=True
+#     )
+#     file_name: Mapped[str] = mapped_column(
+#         "file_name", String(250), unique=False, nullable=True
+#     )
+#     file_size: Mapped[int] = mapped_column(
+#         "file_size", Integer, unique=False, nullable=True
+#     )
 
-    def __repr__(self):
-        return f"<{self._name(lower=False)}(id='{self.id}',name='{self.name}',creator_id='{self.creator_id}',file_path='{self.file_path}',{self._get_generic_repr()})>"
+#     def __repr__(self):
+#         return f"<{self._name(lower=False)}(id='{self.id}',name='{self.name}',creator_id='{self.creator_id}',file_path='{self.file_path}',file_name='{self.file_name}',file_size='{self.file_size}',{self._get_generic_repr()})>"
 
 
 class Reports(GenericModel):
@@ -357,10 +375,10 @@ class Analyzes(GenericModel):
         "status", Enum(AnalyzeStatus), nullable=False
     )
     started_date: Mapped[datetime] = mapped_column(
-        "started_date", DateTime, default=datetime.utcnow
+        "started_date", DateTime, default=datetime.utcnow, nullable=True
     )
     finished_date: Mapped[datetime] = mapped_column(
-        "finished_date", DateTime, default=datetime.utcnow
+        "finished_date", DateTime, default=datetime.utcnow, nullable=True
     )
     datasource_id: Mapped[int] = mapped_column(
         "datasource_id",

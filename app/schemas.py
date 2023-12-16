@@ -13,7 +13,6 @@ from app.models import (
     Users,
     Reports,
     Datasources,
-    FileDatasources,
     VisualizationTypes,
     Visualizations,
     DataVisualizations,
@@ -84,32 +83,6 @@ class DatasourcesFullSchema(DatasourcesSchema):
     creator = fields.Nested(OrganizationMembersFullSchema)
 
 
-class FileDatasourcesSchema(DatasourcesSchema):
-    class Meta:
-        model = FileDatasources
-        include_fk = True
-        load_instance = True
-
-
-class FileDatasourcesFullSchema(FileDatasourcesSchema):
-    creator = fields.Nested(OrganizationMembersFullSchema)
-
-
-class DatasourcesTypeSchema(OneOfSchema):
-    type_field = "type"
-    type_schemas = {DatasourceTypes.FILE.name: FileDatasourcesSchema}
-
-    def get_obj_type(self, obj):
-        if isinstance(obj, FileDatasources):
-            return DatasourceTypes.FILE.name
-        else:
-            raise ValueError(f"Unknown object type: {obj.__class__}")
-
-
-class DatasourcesTypeFullSchema(DatasourcesTypeSchema):
-    type_schemas = {DatasourceTypes.FILE.name: FileDatasourcesFullSchema}
-
-
 class AnalyzesSchema(ma.SQLAlchemyAutoSchema):
     status = fields.Enum(AnalyzeStatus)
     algorithm = fields.Enum(Algorithm)
@@ -121,7 +94,7 @@ class AnalyzesSchema(ma.SQLAlchemyAutoSchema):
 
 class AnalyzesFullSchema(AnalyzesSchema):
     creator = fields.Nested(OrganizationMembersFullSchema)
-    datasource = fields.Nested(DatasourcesTypeFullSchema)
+    datasource = fields.Nested(DatasourcesFullSchema)
 
 
 class ReportsSchema(ma.SQLAlchemyAutoSchema):
