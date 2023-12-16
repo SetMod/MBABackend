@@ -4,7 +4,7 @@ import model.MBAnalyze as mba
 from app.config import APP_ANALYZES_FOLDER
 from app.logger import logger
 from app.db import db
-from app.models import Analyzes, FileDatasources, Visualizations
+from app.models import Analyzes, Datasources, Visualizations
 from app.schemas import AnalyzesSchema
 from app.services.GenericService import GenericService
 # from app.services.FileDatasourcesService import FileDatasourcesService
@@ -32,7 +32,7 @@ class AnalyzesService(GenericService):
 
     def create_analyze(self, analyze: Analyzes, id: int, dump: bool = True):
         file = self.files_service.get_file_by_id(id, dump=False)
-        if not isinstance(file, FileDatasources):
+        if not isinstance(file, Datasources):
             return file
 
         # mba = MBAnalyze(

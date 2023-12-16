@@ -32,11 +32,13 @@ class GenericService:
     def map_model(self, model_dict: dict) -> GenericModel:
         logger.info(f"Mapping {self.model_class._name()} model")
         try:
-            model_dict = self.schema.load(model_dict)
-            if isinstance(model_dict, dict):
-                model = self.model_class(**model_dict)
-            else:
+            loaded_model = self.schema.load(model_dict)
+            if isinstance(loaded_model, dict):
+                model = self.model_class(**loaded_model)
+            elif isinstance(loaded_model, self.model_class):
                 model = model_dict
+            else:
+                model = self.model_class()
             logger.info(f"Mapped {self.model_class._name()}: {model}")
             return model
         except ValidationError as err:
