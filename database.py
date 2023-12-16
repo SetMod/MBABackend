@@ -6,7 +6,7 @@ from app.models import (
     AnalyzeStatus,
     Analyzes,
     DatasourceTypes,
-    FileDatasources,
+    Datasources,
     GenericReports,
     OrganizationMembers,
     OrganizationRoles,
@@ -67,12 +67,14 @@ def create_database(app: Flask):
         member1.active = True
         member1.role = OrganizationRoles.OWNER
 
-        datasource1 = FileDatasources()
+        datasource1 = Datasources()
         datasource1.name = "Transactions Datasource"
         datasource1.type = DatasourceTypes.FILE
         datasource1.file_path = (
             APP_UPLOAD_FOLDER.joinpath("test_datasource_1.csv").resolve().as_posix()
         )
+        datasource1.file_name = "test_datasource_1.csv"
+        datasource1.file_size = 542342
         datasource1.creator_id = 1
 
         analyze1 = Analyzes()
