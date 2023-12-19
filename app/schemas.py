@@ -13,10 +13,9 @@ from app.models import (
     Users,
     Reports,
     Datasources,
+    VisualizationChartTypes,
     VisualizationTypes,
     Visualizations,
-    DataVisualizations,
-    FileVisualizations,
     Analyzes,
     Algorithm,
 )
@@ -61,12 +60,6 @@ class OrganizationMembersSchema(ma.SQLAlchemyAutoSchema):
 
 
 class OrganizationMembersFullSchema(OrganizationMembersSchema):
-    # user = auto_field(many=True)
-    # user = fields.Nested(UsersSchema, many=True)
-
-    # user = auto_field()
-    # organization = auto_field()
-
     user = fields.Nested(UsersSchema)
     organization = fields.Nested(OrganizationsSchema)
 
@@ -111,19 +104,8 @@ class ReportsFullSchema(ReportsSchema):
 
 class VisualizationsSchema(ma.SQLAlchemyAutoSchema):
     type = fields.Enum(VisualizationTypes)
+    chart_type = fields.Enum(VisualizationChartTypes)
 
     class Meta:
         model = Visualizations
-        include_fk = True
-
-
-class DataVisualizationsSchema(ma.SQLAlchemyAutoSchema):
-    class Meta:
-        model = DataVisualizations
-        include_fk = True
-
-
-class FileVisualizationsSchema(ma.SQLAlchemyAutoSchema):
-    class Meta:
-        model = FileVisualizations
         include_fk = True

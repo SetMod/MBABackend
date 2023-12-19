@@ -51,6 +51,14 @@ class VisualizationTypes(enum.Enum):
     DATA_POINTS = "data points"
 
 
+class VisualizationChartTypes(enum.Enum):
+    PIE = "Pie"
+    LINE = "Line"
+    BAR = "Bar"
+    RADAR = "Radar"
+    POLARAREA = "PolarArea"
+
+
 class AnalyzeStatus(enum.Enum):
     NOT_STARTED = "Not started"
     STARTED = "Started"
@@ -259,7 +267,7 @@ class Datasources(GenericModel, FileDatasourcesMixin):
     # }
 
     def __repr__(self):
-        return f"<{self._name(lower=False)}(id='{self.id}',name='{self.name}',type='{self.type}',creator_id='{self.creator_id}',{self._get_generic_repr()})>"
+        return f"<{self._name(lower=False)}(id='{self.id}',name='{self.name}',type='{self.type}',creator_id='{self.creator_id}',file_path='{self.file_path}',file_name='{self.file_name}',file_size='{self.file_size}',{self._get_generic_repr()})>"
 
 
 # class FileDatasources(Datasources):
@@ -295,28 +303,42 @@ class Reports(GenericModel):
     creator: Mapped[OrganizationMembers] = relationship(
         OrganizationMembers, back_populates=__tablename__
     )
+    analyze_id: Mapped[int] = mapped_column(
+        "analyze_id",
+        Integer,
+        ForeignKey("analyzes.id"),
+        nullable=True,
+    )
+    analyze: Mapped["Analyzes"] = relationship("Analyzes", back_populates=__tablename__)
 
     visualizations: Mapped[List["Visualizations"]] = relationship(
-        "Visualizations", back_populates="report"
+        "Visualizations",
+        back_populates="report",
+        cascade="all, delete",
     )
 
-    __mapper_args__ = {
-        "polymorphic_on": type,
-        "polymorphic_identity": __tablename__,
-    }
+    # __mapper_args__ = {
+    #     "polymorphic_on": type,
+    #     "polymorphic_identity": __tablename__,
+    # }
 
     def __repr__(self):
         return f"<{self._name(lower=False)}(id='{self.id}',name='{self.name}',type='{self.type}',creator_id='{self.creator_id}',{self._get_generic_repr()})>"
 
 
-class GenericReports(Reports):
-    __mapper_args__ = {"polymorphic_identity": ReportTypes.GENERIC}
+class FileVisualizationsMixin:
+    # __mapper_args__ = {"polymorphic_identity": VisualizationTypes.FILE}
 
-    def __repr__(self):
-        return f"<{self._name(lower=False)}(id='{self.id}',name='{self.name}',type='{self.type}',creator_id='{self.creator_id}',{self._get_generic_repr()})>"
+    file_path: Mapped[str] = mapped_column("file_path", String(255), nullable=True)
 
 
-class Visualizations(GenericModel):
+class DataVisualizationsMixin:
+    # __mapper_args__ = {"polymorphic_identity": VisualizationTypes.DATA_POINTS}
+
+    data_points: Mapped[str] = mapped_column("data_points", Text, nullable=True)
+
+
+class Visualizations(GenericModel, FileVisualizationsMixin, DataVisualizationsMixin):
     __tablename__ = "visualizations"
 
     name: Mapped[str] = mapped_column("name", String(50), nullable=False)
@@ -326,36 +348,24 @@ class Visualizations(GenericModel):
         default=VisualizationTypes.FILE,
         nullable=False,
     )
+    chart_type: Mapped[VisualizationChartTypes] = mapped_column(
+        "chart_type",
+        Enum(VisualizationChartTypes),
+        default=VisualizationChartTypes.BAR,
+        nullable=False,
+    )
     report_id: Mapped[int] = mapped_column(
         "report_id", Integer, ForeignKey("reports.id"), nullable=False
     )
     report: Mapped["Reports"] = relationship("Reports", back_populates=__tablename__)
 
-    __mapper_args__ = {
-        "polymorphic_on": type,
-        "polymorphic_identity": __tablename__,
-    }
+    # __mapper_args__ = {
+    #     "polymorphic_on": type,
+    #     "polymorphic_identity": __tablename__,
+    # }
 
     def __repr__(self) -> str:
         return f"<{self._name(lower=False)}(id='{self.id}',name='{self.name}',report_id='{self.report_id}',{self._get_generic_repr()})>"
-
-
-class FileVisualizations(Visualizations):
-    __mapper_args__ = {"polymorphic_identity": VisualizationTypes.FILE}
-
-    file_path: Mapped[str] = mapped_column("file_path", String(255), nullable=True)
-
-    def __repr__(self) -> str:
-        return f"<{self._name(lower=False)}(id='{self.id}',name='{self.name}',file_path='{self.file_path}',{self._get_generic_repr()})>"
-
-
-class DataVisualizations(FileVisualizations):
-    __mapper_args__ = {"polymorphic_identity": VisualizationTypes.DATA_POINTS}
-
-    data_points: Mapped[str] = mapped_column("data_points", Text, nullable=True)
-
-    def __repr__(self) -> str:
-        return f"<{self._name(lower=False)}(id='{self.id}',name='{self.name}',file_path='{self.file_path}',{self._get_generic_repr()})>"
 
 
 class Analyzes(GenericModel):
@@ -395,7 +405,7 @@ class Analyzes(GenericModel):
     datasource: Mapped[Datasources] = relationship(
         Datasources, back_populates=__tablename__
     )
-    # report: Mapped["Reports"] = relationship("Reports", back_populates="analyzes")
+    reports: Mapped[List["Reports"]] = relationship(Reports, back_populates="analyze")
 
     def __repr__(self):
-        return f"<{self._name(lower=False)}(id='{self.id}',name='{self.name}',support='{self.support}',lift='{self.lift}',confidence='{self.confidence}',rules_length='{self.rules_length}',datasource_id='{self.datasource_id}',{self._get_generic_repr()})>"
+        return f"<{self._name(lower=False)}(id='{self.id}',name='{self.name}',status='{self.status}',algorithm='{self.algorithm}',support='{self.support}',lift='{self.lift}',confidence='{self.confidence}',rules_length='{self.rules_length}',datasource_id='{self.datasource_id}',file_path='{self.file_path}',{self._get_generic_repr()})>"
