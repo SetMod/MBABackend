@@ -6,7 +6,7 @@ from app.schemas import DatasourcesFullSchema
 from app.services import datasources_service
 from app.config import APP_UPLOAD_FOLDER
 from app.logger import logger
-from app.exceptions import CustomBadRequest, CustomNotFound
+from app.exceptions import CustomBadRequest
 import json
 import os
 
@@ -71,22 +71,11 @@ def download_file_by_id(id: int):
 
     file_datasource: Datasources = datasources_service.get_by_id(id)
 
-    if file_datasource.type != DatasourceTypes.FILE:
-        err_msg = f"Bad datasource type {DatasourceTypes.FILE.name}!={file_datasource.type.name}"
-        logger.warning(err_msg)
-        raise CustomBadRequest(err_msg)
+    file_path = os.path.basename(file_datasource.file_path)
 
-    elif not os.path.exists(file_datasource.file_path):
-        err_msg = (
-            f"File datasource file  doesn't exists at '{file_datasource.file_path}'"
-        )
-        logger.warning(err_msg)
-        raise CustomNotFound(err_msg)
-
-    file_name = os.path.basename(file_datasource)
     return send_from_directory(
         directory=APP_UPLOAD_FOLDER,
-        path=file_name,
+        path=file_path,
         # download_name=file_datasource.name,
         as_attachment=True,
     )
