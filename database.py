@@ -7,7 +7,7 @@ from app.models import (
     Analyzes,
     DatasourceTypes,
     Datasources,
-    GenericReports,
+    Reports,
     OrganizationMembers,
     OrganizationRoles,
     Organizations,
@@ -46,11 +46,11 @@ def create_database(app: Flask):
         db.create_all()
 
         user = Users()
-        user.username = "guest"
-        user.password = "guest"
+        user.username = "admin"
+        user.password = "admin"
         user.first_name = "First"
-        user.second_name = "Guest"
-        user.email = "guest@example.com"
+        user.second_name = "Second"
+        user.email = "admin@example.com"
         user.phone = "+123456567123"
         user.active = True
         user.role = Roles.ADMIN
@@ -94,7 +94,7 @@ def create_database(app: Flask):
 
         db.session.add(analyze1)
 
-        report1 = GenericReports()
+        report1 = Reports()
         report1.name = "Transactions Report"
         report1.type = ReportTypes.GENERIC
         report1.creator_id = 1
