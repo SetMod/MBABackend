@@ -1,9 +1,9 @@
 from cgi import FieldStorage
 from app.config import APP_UPLOAD_FOLDER
-from app.exceptions import CustomBadRequest
+from app.exceptions import CustomBadRequest, CustomNotFound
 from app.logger import logger
-from app.models import Datasources
-from app.schemas import DatasourcesFullSchema
+from app.models import DatasourceTypes, Datasources
+from app.schemas import DatasourcesSchema
 from app.config import APP_UPLOAD_FOLDER
 from app.services.GenericService import GenericService
 from app.utils import allowed_file, generate_unique_filename
@@ -13,7 +13,7 @@ import os
 
 class DatasourcesService(GenericService):
     def __init__(self) -> None:
-        super().__init__(schema=DatasourcesFullSchema(), model_class=Datasources)
+        super().__init__(schema=DatasourcesSchema(), model_class=Datasources)
 
     def create_file(self, new_file_datasource_dict: dict, file: FieldStorage):
         logger.info(f"Creating new {self.model_class._name()}")
@@ -56,6 +56,23 @@ class DatasourcesService(GenericService):
             f"Successfully created new {new_file_datasource._name()} with id='{new_file_datasource.id}'"
         )
         return new_file_datasource
+
+    def download_file(self, id: int):
+        file_datasource: Datasources = self.get_by_id(id)
+
+        if file_datasource.type != DatasourceTypes.FILE:
+            err_msg = f"Bad datasource type {DatasourceTypes.FILE.name}!={file_datasource.type.name}"
+            logger.warning(err_msg)
+            raise CustomBadRequest(err_msg)
+
+        elif not os.path.exists(file_datasource.file_path):
+            err_msg = (
+                f"File datasource file  doesn't exists at '{file_datasource.file_path}'"
+            )
+            logger.warning(err_msg)
+            raise CustomNotFound(err_msg)
+
+        return file_datasource
 
     def delete(self, id: int):
         logger.info(f"Deleting {self.model_class._name()} with id='{id}'")
