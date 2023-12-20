@@ -36,11 +36,6 @@ class DatasourceTypes(enum.Enum):
     FILE = "File"
     DB = "DB"
 
-    # CSV = "CSV"
-    # SQLITE = "SQLite"
-    # MYSQL = "MySQL"
-    # POSTGRESQL = "PostgreSQL"
-
 
 class ReportTypes(enum.Enum):
     GENERIC = "generic"
@@ -268,23 +263,6 @@ class Datasources(GenericModel, FileDatasourcesMixin):
 
     def __repr__(self):
         return f"<{self._name(lower=False)}(id='{self.id}',name='{self.name}',type='{self.type}',creator_id='{self.creator_id}',file_path='{self.file_path}',file_name='{self.file_name}',file_size='{self.file_size}',{self._get_generic_repr()})>"
-
-
-# class FileDatasources(Datasources):
-#     __mapper_args__ = {"polymorphic_identity": DatasourceTypes.FILE}
-
-#     file_path: Mapped[str] = mapped_column(
-#         "file_path", String(255), unique=True, nullable=True
-#     )
-#     file_name: Mapped[str] = mapped_column(
-#         "file_name", String(250), unique=False, nullable=True
-#     )
-#     file_size: Mapped[int] = mapped_column(
-#         "file_size", Integer, unique=False, nullable=True
-#     )
-
-#     def __repr__(self):
-#         return f"<{self._name(lower=False)}(id='{self.id}',name='{self.name}',creator_id='{self.creator_id}',file_path='{self.file_path}',file_name='{self.file_name}',file_size='{self.file_size}',{self._get_generic_repr()})>"
 
 
 class Reports(GenericModel):
