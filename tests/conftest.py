@@ -1,125 +1,323 @@
-import pytest
-from flask import Flask
-from flask_cors import CORS
-from flask_marshmallow import Marshmallow
 from flask_sqlalchemy import SQLAlchemy
+from flask.testing import FlaskClient
+from flask import Flask
+import pytest
 import os
 
-UPLOAD_FOLDER = 'D:\\test_data'
-ANALYZES_UPLOAD_FOLDER = 'D:\\test_data\\analyzes'
-VISUALIZATIONS_UPLOAD_FOLDER = 'D:\\test_data\\visualizations'
-ALLOWED_EXTENSIONS = {'csv'}
-os.environ['FLASK_APP'] = 'app'
-os.environ['FLASK_ENV'] = 'development'
+os.environ["APP_DOTENV_PATH"] = ".env.test"
 
 
-@pytest.fixture(scope='session')
-def app(request):
-    app = Flask(__name__)
-    app.config['TESTING'] = True
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///../test_database.db"
-    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    app.secret_key = "s3crEt"
-    app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-    app.config["ALLOWED_EXTENSIONS"] = ALLOWED_EXTENSIONS
-    app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024 * 1024
-    CORS(app)
+@pytest.fixture(scope="session")
+def app():
+    from app import create_app
 
-    return app
+    app = create_app()
+    app.config.update(
+        {
+            "TESTING": True,
+        }
+    )
+
+    yield app
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def db(app: Flask):
-    db = SQLAlchemy(app)
-    return db
+    from app.db import db
+
+    with app.app_context():
+        db.drop_all()
+        db.create_all()
+        yield db
 
 
-@pytest.fixture(scope='session')
-def ma(app: Flask):
-    ma = Marshmallow(app)
-    return ma
-
-
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def client(app: Flask):
     with app.test_client() as client:
         yield client
 
 
-@pytest.fixture(scope='module')
-def roles(request, db):
-    class Roles(db.Model):
-        __tablename__ = "roles"
-        role_id = db.Column('role_id', db.Integer, primary_key=True)
-        role_name = db.Column('role_name', db.String(50),
-                              unique=True, nullable=False)
-        role_description = db.Column(
-            'role_description', db.Text, nullable=False)
+@pytest.fixture(scope="session")
+def create_users(db: SQLAlchemy):
+    from app.models import Users, Roles
 
-        def __repr__(self):
-            return f'<Role(role_id={self.role_id},role_name={self.role_name},role_description={self.role_description})>'
-    # Create tables
-    db.create_all()
+    user1 = Users()
+    user1.first_name = "John"
+    user1.second_name = "Doe"
+    user1.username = "johndoe"
+    user1.active = True
+    user1.email = "john.doe@gmail.com"
+    user1.phone = "+3801234567"
+    user1.password = "s3cr3TP@@$w0Rd"
+    user1.role = Roles.USER.name
 
-    @request.addfinalizer
-    def drop_tables():
-        db.drop_all()
+    user2 = Users()
+    user2.first_name = "John"
+    user2.second_name = "Smith"
+    user2.username = "johns"
+    user2.active = True
+    user2.email = "john.smith@gmail.com"
+    user2.phone = "+380123456780123"
+    user2.password = "Rx123@@$w0Rd"
+    user2.role = Roles.ADMIN.name
 
-    return Roles
+    db.session.add(user1)
+    db.session.add(user2)
 
+    db.session.commit()
 
-@pytest.fixture(scope='module')
-def roles_schema(ma, roles):
-    class RolesSchema(ma.SQLAlchemyAutoSchema):
-        class Meta:
-            model = roles
-    roles_schema = RolesSchema()
-    return roles_schema
-
-
-# @pytest.fixture(scope='module')
-# def users(request, db):
-#     class Users(db.Model):
-#         __tablename__ = "users"
-
-#         user_id = db.Column('user_id', db.Integer, primary_key=True)
-#         user_first_name = db.Column(
-#             'user_first_name', db.String(100), nullable=False)
-#         user_second_name = db.Column(
-#             'user_second_name', db.String(100), nullable=False)
-#         user_email = db.Column('user_email', db.String(
-#             255), unique=True, nullable=False)
-#         user_phone = db.Column('user_phone', db.String(18), unique=True)
-#         user_username = db.Column('user_username', db.String(
-#             50), unique=True, nullable=False)
-#         user_password = db.Column(
-#             'user_password', db.String(50), nullable=False)
-#         user_create_date = db.Column(
-#             'user_create_date', db.DateTime, default=datetime.utcnow)
-#         role_id = db.Column('role_id', db.Integer, db.ForeignKey(
-#             "roles.role_id"), nullable=False)
-
-#         user_role = db.relationship("Roles", backref="role_users")
-#         user_organizations = db.relationship(
-#             "UsersOrganizations", backref="user", cascade='save-update, merge, delete')
-
-#         def __repr__(self):
-#             return f'<User(user_id={self.user_id},user_first_name={self.user_first_name},user_second_name={self.user_second_name},user_email={self.user_email},user_username={self.user_username},user_create_date={self.user_create_date},role_id={self.role_id})>'
-
-#     # Create tables
-#     db.create_all()
-
-#     @request.addfinalizer
-#     def drop_tables():
-#         db.drop_all()
-
-#     return Users
+    return [user1, user2]
 
 
-# @pytest.fixture(scope='module')
-# def users_schema(ma, users):
-#     class UsersSchema(ma.SQLAlchemyAutoSchema):
-#         class Meta:
-#             model = users
-#             include_fk = True
-#     return UsersSchema
+@pytest.fixture(scope="session")
+def create_organizations(db: SQLAlchemy):
+    from app.models import Organizations
+
+    org1 = Organizations()
+    org1.name = "LocalStore"
+    org1.description = "LocalStore organization for local stores"
+    org1.email = "business@localstore.com"
+    org1.phone = "+123123123123"
+
+    org2 = Organizations()
+    org2.name = "Enter"
+    org2.description = "Enter organization for new businesses"
+    org2.email = "support@enter.com"
+    org2.phone = "+123123123124"
+
+    db.session.add(org1)
+    db.session.add(org2)
+
+    db.session.commit()
+
+    return [org1, org2]
+
+
+@pytest.fixture(scope="session")
+def create_organization_members(db: SQLAlchemy):
+    from app.models import OrganizationMembers, OrganizationRoles
+
+    member1 = OrganizationMembers()
+    member1.user_id = 1
+    member1.organization_id = 1
+    member1.active = True
+    member1.role = OrganizationRoles.OWNER
+
+    member2 = OrganizationMembers()
+    member2.user_id = 2
+    member2.organization_id = 1
+    member2.active = True
+    member2.role = OrganizationRoles.ADMIN
+
+    db.session.add(member1)
+    db.session.add(member2)
+
+    db.session.commit()
+
+    return [member1, member2]
+
+
+@pytest.fixture(scope="session")
+def create_datasources(db: SQLAlchemy):
+    from app.config import APP_UPLOAD_FOLDER
+    from app.models import Datasources, DatasourceTypes
+
+    datasource1 = Datasources()
+    datasource1.name = "Transactions Datasource"
+    datasource1.type = DatasourceTypes.FILE
+    datasource1.file_path = APP_UPLOAD_FOLDER.joinpath("test.csv").resolve().as_posix()
+    datasource1.file_name = "test.csv"
+    datasource1.file_size = 142342
+    datasource1.creator_id = 1
+
+    db.session.add(datasource1)
+
+    db.session.commit()
+
+    return [datasource1]
+
+
+@pytest.fixture(scope="session")
+def create_analyzes(db: SQLAlchemy):
+    from app.models import Analyzes, Algorithm, AnalyzeStatus
+    from app.config import APP_ANALYZES_FOLDER
+
+    analyze1 = Analyzes()
+    analyze1.name = "Test analyze"
+    analyze1.description = "Test analyze for demo"
+    analyze1.algorithm = Algorithm.APRIORI
+    analyze1.confidence = 0.1
+    analyze1.support = 1
+    analyze1.lift = 1.5
+    analyze1.rules_length = 2
+    analyze1.status = AnalyzeStatus.NOT_STARTED
+    analyze1.file_path = APP_ANALYZES_FOLDER.joinpath("test.csv").resolve().as_posix()
+    analyze1.datasource_id = 1
+    analyze1.creator_id = 1
+
+    db.session.add(analyze1)
+
+    db.session.commit()
+
+    return [analyze1]
+
+
+@pytest.fixture(scope="session")
+def create_reports(db: SQLAlchemy):
+    from app.models import GenericReports, ReportTypes
+
+    report1 = GenericReports()
+    report1.name = "Transactions Report"
+    report1.type = ReportTypes.GENERIC
+    report1.creator_id = 1
+
+    db.session.add(report1)
+
+    db.session.commit()
+
+    return [report1]
+
+
+@pytest.fixture(scope="session")
+def create_visualizations(db: SQLAlchemy):
+    from app.config import APP_VISUALIZATIONS_FOLDER
+    from app.models import (
+        FileVisualizations,
+        DataVisualizations,
+        VisualizationTypes,
+    )
+
+    visualization1 = DataVisualizations()
+    visualization1.name = "Transactions visualization 1"
+    visualization1.type = VisualizationTypes.DATA_POINTS
+    visualization1.data_points = "[1,6,2,9,2]"
+    visualization1.file_path = (
+        APP_VISUALIZATIONS_FOLDER.joinpath("viz_1.png").resolve().as_posix()
+    )
+    visualization1.report_id = 1
+
+    visualization2 = FileVisualizations()
+    visualization2.name = "Transactions visualization 2"
+    visualization2.type = VisualizationTypes.FILE
+    visualization2.file_path = (
+        APP_VISUALIZATIONS_FOLDER.joinpath("viz_2.png").resolve().as_posix()
+    )
+    visualization2.report_id = 1
+
+    db.session.add(visualization1)
+    db.session.add(visualization2)
+
+    db.session.commit()
+
+    return [visualization1]
+
+
+@pytest.fixture(scope="session", autouse=True)
+def create_models(
+    create_users,
+    create_organizations,
+    create_organization_members,
+    create_datasources,
+    create_analyzes,
+    create_reports,
+    create_visualizations,
+):
+    pass
+
+
+@pytest.fixture(scope="session")
+def login(client: FlaskClient):
+    from app.logger import logger
+
+    user = {"username": "johndoe", "password": "s3cr3TP@@$w0Rd"}
+    res = client.post(
+        "/api/v1/users/auth/login",
+        json=user,
+    )
+    logger.info(res.json)
+    logger.info(res.headers)
+
+    access_token = res.json["access_token"]
+    headers = {"Authorization": f"Bearer {access_token}"}
+
+    return headers
+
+
+@pytest.fixture(scope="module")
+def users_schema():
+    from app.schemas import UsersSchema
+
+    users_schema = UsersSchema()
+    return users_schema
+
+
+@pytest.fixture(scope="module")
+def users_service():
+    from app.services import UsersService
+
+    users_service = UsersService()
+    return users_service
+
+
+@pytest.fixture(scope="module")
+def organizations_schema():
+    from app.schemas import OrganizationsSchema
+
+    organizations_schema = OrganizationsSchema()
+    return organizations_schema
+
+
+@pytest.fixture(scope="module")
+def organizations_service():
+    from app.services import OrganizationsService
+
+    organizations_service = OrganizationsService()
+    return organizations_service
+
+
+@pytest.fixture(scope="module")
+def organization_members_schema():
+    from app.schemas import OrganizationMembersSchema
+
+    organization_members_schema = OrganizationMembersSchema()
+    return organization_members_schema
+
+
+@pytest.fixture(scope="module")
+def organization_members_service():
+    from app.services import OrganizationMembersService
+
+    organization_members_service = OrganizationMembersService()
+    return organization_members_service
+
+
+@pytest.fixture(scope="module")
+def datasources_schema():
+    from app.schemas import DatasourcesSchema
+
+    datasources_schema = DatasourcesSchema()
+    return datasources_schema
+
+
+@pytest.fixture(scope="module")
+def datasources_service():
+    from app.services import DatasourcesService
+
+    datasources_service = DatasourcesService()
+    return datasources_service
+
+
+@pytest.fixture(scope="module")
+def reports_schema():
+    from app.schemas import ReportsSchema
+
+    reports_schema = ReportsSchema()
+    return reports_schema
+
+
+@pytest.fixture(scope="module")
+def reports_service():
+    from app.services import ReportsService
+
+    reports_service = ReportsService()
+    return reports_service

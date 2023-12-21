@@ -1,6 +1,10 @@
 __pycache__
-venv
-/data
+.venv
+.*venv
 *.db
+*.sqlite
+*.log
+*.csv
 .vscode
 .pytest_cache
+.env.prod*

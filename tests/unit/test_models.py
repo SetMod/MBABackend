@@ -1,59 +1,62 @@
-
-def test_new_role(db, roles):
-    user_role = roles(role_name='User',
-                      role_description='Roles for standard user')
-    db.session.add(user_role)
-    db.session.commit()
-
-    assert user_role.role_id == 1
-    assert user_role.role_name == 'User'
-    assert user_role.role_description == 'Roles for standard user'
+from app.models import Roles, Users
+from flask_sqlalchemy import SQLAlchemy
 
 
-def test_get_all_roles(db, roles):
-    all_roles = db.session.query(roles).all()
+class TestUsers:
+    def test_get_all(self, db: SQLAlchemy):
+        users = db.session.execute(db.select(Users)).scalars().all()
 
-    assert isinstance(all_roles, list)
+        assert isinstance(users, list)
+        assert len(users) == 2
 
+    def test_get_by_id(self, db: SQLAlchemy):
+        user: Users = db.session.execute(
+            db.select(Users).filter_by(id=1)
+        ).scalar_one_or_none()
 
-def test_get_role_by_name(db, roles):
-    role = db.session.query(roles).where(roles.role_name == 'User').first()
+        assert isinstance(user, Users)
 
-    assert isinstance(role, roles)
-    assert role.role_id == 1
-    assert role.role_name == 'User'
-    assert role.role_description == 'Roles for standard user'
+    def test_create(self, db: SQLAlchemy):
+        new_user = Users(
+            first_name="Bob",
+            second_name="Ross",
+            username="bobross",
+            active=True,
+            email="bob.ross@gmail.com",
+            phone="+123789123978",
+            role=Roles.ADMIN,
+        )
+        new_user.password = "jkZJK#@kn1x23"
+        db.session.add(new_user)
+        db.session.commit()
 
+        assert isinstance(new_user, Users)
+        assert new_user.id == 3
+        assert new_user.first_name == "Bob"
+        assert new_user.second_name == "Ross"
+        assert new_user.username == "bobross"
+        assert new_user.active == True
+        assert new_user.role == Roles.ADMIN
 
-def test_role_schema_dum(db, roles, roles_schema):
-    role = db.session.query(roles).where(roles.role_name == 'User').first()
-    dump_role = roles_schema.dump(role)
+    def test_update(self, db: SQLAlchemy):
+        existing_user: Users = db.session.execute(
+            db.select(Users).filter_by(id=3)
+        ).scalar_one_or_none()
+        existing_user.username = "bob_ross"
+        db.session.commit()
 
-    assert isinstance(dump_role, dict)
-    assert dump_role['role_id'] == 1
-    assert dump_role['role_name'] == 'User'
-    assert dump_role['role_description'] == 'Roles for standard user'
+        assert isinstance(existing_user, Users)
+        assert existing_user.id == 3
+        assert existing_user.username == "bob_ross"
 
+    def test_delete(self, db: SQLAlchemy):
+        existing_user: Users = db.session.execute(
+            db.select(Users).filter_by(id=3)
+        ).scalar_one_or_none()
 
-def test_role_schema_dump_many(db, roles, roles_schema):
-    all_roles = db.session.query(roles).all()
-    dump_role = roles_schema.dump(all_roles, many=True)
+        db.session.delete(existing_user)
+        db.session.commit()
 
-    assert isinstance(dump_role, list)
-    assert isinstance(dump_role[0], dict)
-
-# def test_new_user():
-#     user = Users(user_first_name='Testfirstname',
-#                  user_second_name='Testsecondname',
-#                  user_email='test@test.com',
-#                  user_phone='+01234567890',
-#                  user_username='testuser',
-#                  user_password='testpass',
-#                  role_id=1)
-#     assert user.user_first_name == 'Testfirstname'
-#     assert user.user_second_name == 'Testsecondname'
-#     assert user.user_email == 'test@test.com'
-#     assert user.user_phone == '+01234567890'
-#     assert user.user_username == 'testuser'
-#     assert user.user_password == 'testpass'
-#     assert user.role_id == 1
+        assert isinstance(existing_user, Users)
+        assert existing_user.id == 3
+        assert existing_user.username == "bob_ross"
